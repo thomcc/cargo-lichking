@@ -22,13 +22,12 @@ before_deploy:
   - cargo package --verbose
 
 deploy:
+  provider: script
+  script: cargo publish --verbose --token "$CRATES_IO_TOKEN"
   on:
     tags: true
     all_branches: true
     condition: "$TRAVIS_RUST_VERSION = stable"
-
-after_deploy:
-  - cargo publish --verbose --token "$CRATES_IO_TOKEN"
 
 addons:
   apt:
