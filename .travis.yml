@@ -24,6 +24,7 @@ before_deploy:
 deploy:
   provider: script
   script: cargo publish --verbose --token "$CRATES_IO_TOKEN"
+  skip_cleanup: true
   on:
     tags: true
     all_branches: true
