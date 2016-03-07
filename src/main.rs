@@ -5,13 +5,17 @@ extern crate rustc_serialize;
 mod license;
 mod licensed;
 
-use std::collections::HashMap;
+use std::collections::{ HashMap, HashSet };
+
+use cargo::core::dependency::Kind;
 use cargo::core::registry::PackageRegistry;
+use cargo::core::resolver::Resolve;
 use cargo::core::{ Source, Package };
 use cargo::ops;
 use cargo::sources::path::PathSource;
 use cargo::util::{ important_paths, CargoResult };
 use cargo::{ Config, CliResult, CliError };
+
 use licensed::Licensed;
 
 const USAGE: &'static str = "
@@ -56,14 +60,14 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
   try!(config.shell().set_verbosity(flag_verbose, flag_quiet));
 
   let mut source = try!(source(config));
-  let package = try!(source.root_package());
-  let mut registry = try!(registry(config, &package));
-  let resolve = try!(ops::resolve_pkg(&mut registry, &package));
-  let packages = try!(ops::get_resolved_packages(&resolve, &mut registry));
+  let root = try!(source.root_package());
+  let mut registry = try!(registry(config, &root));
+  let resolve = try!(ops::resolve_pkg(&mut registry, &root));
+  let packages = try!(get_packages(&resolve, &mut registry));
 
   if flag_check {
     let mut fail = 0;
-    let license = package.license();
+    let license = root.license();
     for package in packages {
       let can_include = license.can_include(&package.license());
       if let Some(can_include) = can_include {
@@ -94,6 +98,31 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
 
     Ok(None)
   }
+}
+
+fn get_packages(resolve: &Resolve, registry: &mut PackageRegistry) -> CargoResult<Vec<Package>> {
+  let mut packages = try!(ops::get_resolved_packages(resolve, registry))
+    .into_iter()
+    .map(|package| (package.package_id().clone(), package))
+    .collect::<HashMap<_, _>>();
+
+  let mut result = HashSet::new();
+  let mut to_check = vec![resolve.root()];
+  while let Some(id) = to_check.pop() {
+    if let Some(package) = packages.get(id) {
+      let deps = resolve.deps(id).unwrap();
+      for dep_id in deps {
+        let dep = package.dependencies().iter().find(|d| d.matches_id(dep_id)).unwrap();
+        if let Kind::Normal = dep.kind() {
+          if result.insert(dep_id) {
+            to_check.push(dep_id);
+          }
+        }
+      }
+    }
+  }
+
+  Ok(result.into_iter().filter_map(|id| packages.remove(id)).collect())
 }
 
 fn source(config: &Config) -> CargoResult<PathSource> {
