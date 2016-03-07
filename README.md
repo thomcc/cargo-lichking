@@ -67,4 +67,4 @@ cargo build
 
 When running via `cargo run` you'll need to provide an initial `lichking`
 argument to simulate running as a cargo subcommand, e.g. `cargo run -- lichking
---check`.
+check`.
