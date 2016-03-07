@@ -29,6 +29,7 @@ Options:
     -V, --version           Print version info and exit
     -v, --verbose           Use verbose output
     -q, --quiet             Use quiet output
+    --manifest-path PATH    Path to the manifest to analyze
     --check                 Check that all dependencies can be included in the current package
 ";
 
@@ -37,6 +38,7 @@ struct Flags {
   flag_version: bool,
   flag_verbose: bool,
   flag_quiet: bool,
+  flag_manifest_path: Option<String>,
   flag_check: bool,
 }
 
@@ -49,6 +51,7 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
     flag_version,
     flag_verbose,
     flag_quiet,
+    flag_manifest_path,
     flag_check,
   } = flags;
 
@@ -61,7 +64,7 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
 
   try!(config.shell().set_verbosity(flag_verbose, flag_quiet));
 
-  let mut source = try!(source(config));
+  let mut source = try!(source(config, flag_manifest_path));
   let root = try!(source.root_package());
   let mut registry = try!(registry(config, &root));
   let resolve = try!(ops::resolve_pkg(&mut registry, &root));
@@ -127,8 +130,8 @@ fn get_packages(resolve: &Resolve, registry: &mut PackageRegistry) -> CargoResul
   Ok(result.into_iter().filter_map(|id| packages.remove(id)).collect())
 }
 
-fn source(config: &Config) -> CargoResult<PathSource> {
-  let root = try!(important_paths::find_root_manifest_for_wd(None, config.cwd()));
+fn source(config: &Config, manifest_path: Option<String>) -> CargoResult<PathSource> {
+  let root = try!(important_paths::find_root_manifest_for_wd(manifest_path, config.cwd()));
   let mut source = try!(PathSource::for_path(root.parent().unwrap(), config));
   try!(source.update());
   Ok(source)
