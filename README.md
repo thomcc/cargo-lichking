@@ -1,6 +1,6 @@
 # cargo-lichking
 
-Automated *li*cense *ch*ec*king* for rust. `cargo lichking` is a [Cargo][]
+Automated **li**cense **ch**ec**king** for rust. `cargo lichking` is a [Cargo][]
 subcommand that checks licensing information for dependencies.
 
 **Liches are not lawyers**, the information output from this tool is provided as
