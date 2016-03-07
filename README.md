@@ -11,7 +11,7 @@ guaranteed so for real license checking it's necessary to verify all
 dependencies manually.
 
 To install simply run
-`cargo install --git https://github.com/Nemo157/cargo-lichking --tag 0.2.1`
+`cargo install --git https://github.com/Nemo157/cargo-lichking`
 (coming to a crates.io near you soon). Unless you're using a homebrew installed
 copy of openssl, then *"simply"* run:
 
@@ -19,12 +19,12 @@ copy of openssl, then *"simply"* run:
 OPENSSL_ROOT_DIR=`brew --prefix openssl` \
 OPENSSL_LIB_DIR=`brew --prefix openssl`/lib \
 OPENSSL_INCLUDE_DIR=`brew --prefix openssl`/include \
-cargo install --git https://github.com/Nemo157/cargo-lichking --tag 0.2.1
+cargo install --git https://github.com/Nemo157/cargo-lichking
 ```
 
 To get a list of all your (transitive) dependencies licenses just run `cargo
-lichking`. To check license compatibility based off this [License Slide][] by
-David A. Wheeler run `cargo lichking --check`.
+lichking list`. To check license compatibility based off this [License Slide][]
+by David A. Wheeler run `cargo lichking check`.
 
 [Cargo]: https://github.com/rust-lang/cargo
 [License Slide]: http://www.dwheeler.com/essays/floss-license-slide.html

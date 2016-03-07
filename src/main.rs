@@ -21,7 +21,7 @@ use licensed::Licensed;
 const USAGE: &'static str = "
 Display info about licensing of dependencies
 
-Usage: cargo lichking [options]
+Usage: cargo lichking (list|check) [options]
        cargo lichking --help
 
 Options:
@@ -30,16 +30,16 @@ Options:
     -v, --verbose           Use verbose output
     -q, --quiet             Use quiet output
     --manifest-path PATH    Path to the manifest to analyze
-    --check                 Check that all dependencies can be included in the current package
 ";
 
 #[derive(RustcDecodable)]
 struct Flags {
+  cmd_list: bool,
+  cmd_check: bool,
   flag_version: bool,
   flag_verbose: bool,
   flag_quiet: bool,
   flag_manifest_path: Option<String>,
-  flag_check: bool,
 }
 
 fn main() {
@@ -48,11 +48,12 @@ fn main() {
 
 fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
   let Flags {
+    cmd_list,
+    cmd_check,
     flag_version,
     flag_verbose,
     flag_quiet,
     flag_manifest_path,
-    flag_check,
   } = flags;
 
   if flag_version {
@@ -70,7 +71,7 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
   let resolve = try!(ops::resolve_pkg(&mut registry, &root));
   let packages = try!(get_packages(&resolve, &mut registry));
 
-  if flag_check {
+  if cmd_check {
     let mut fail = 0;
     let license = root.license();
     for package in packages {
@@ -89,7 +90,7 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
     } else {
       Ok(None)
     }
-  } else {
+  } else if cmd_list {
     let mut license_to_packages = HashMap::new();
 
     for package in packages {
@@ -102,6 +103,8 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
     }
 
     Ok(None)
+  } else {
+    unreachable!()
   }
 }
 
