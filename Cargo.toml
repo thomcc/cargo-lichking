@@ -1,0 +1,19 @@
+[package]
+name = "cargo-lichking"
+version = "0.1.0"
+authors = ["Wim Looman <wim@nemo157.com>"]
+description = "Display info about licensing of dependencies"
+
+readme = "README.md"
+keywords = ["cargo", "licensing"]
+
+license = "MIT/Apache-2.0"
+
+[features]
+default = []
+
+[dependencies]
+cargo = "0.8"
+rustc-serialize = "0.3"
+void = "1.0.1"
+clippy = { version = "0.0.46", optional = true }
