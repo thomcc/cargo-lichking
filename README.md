@@ -1,4 +1,4 @@
-# cargo-lichking
+# cargo-lichking [![travis-badge][]][travis] [![release-badge][]][crate]
 
 Automated **li**cense **ch**ec**king** for rust. `cargo lichking` is a [Cargo][]
 subcommand that checks licensing information for dependencies.
@@ -9,6 +9,12 @@ represents legal advice or guarantees correctness. The tool relies at a minimum
 on package metadata containing correct licensing information, this is not
 guaranteed so for real license checking it's necessary to verify all
 dependencies manually.
+
+[travis-badge]: https://img.shields.io/travis/Nemo157/cargo-lichking/master.svg?style=flat-square
+[travis]: https://travis-ci.org/Nemo157/cargo-lichking
+[release-badge]: https://img.shields.io/github/release/Nemo157/cargo-lichking.svg?style=flat-square
+[crate]: https://crates.io/crates/cargo-lichking
+[Cargo]: https://github.com/rust-lang/cargo
 
 ### Installation
 
@@ -28,7 +34,6 @@ To get a list of all your (transitive) dependencies licenses run `cargo lichking
 list`. To check license compatibility based off this [License Slide][] by David
 A. Wheeler run `cargo lichking check`.
 
-[Cargo]: https://github.com/rust-lang/cargo
 [License Slide]: http://www.dwheeler.com/essays/floss-license-slide.html
 
 ## License
