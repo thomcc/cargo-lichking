@@ -44,11 +44,6 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you shall be dual licensed as above, without any
 additional terms or conditions.
 
-[release-badge]: https://img.shields.io/badge/crate-coming--soon-yellowgreen.svg?style=flat-square
-[cargo]: https://crates.io/crates/git-appraise
-[git-appraise]: https://github.com/google/git-appraise
-[git2-rs]: https://github.com/alexcrichton/git2-rs
-
 ## Developing
 
 If building on OS X with a `homebrew` installed copy of OpenSSL you'll need to
