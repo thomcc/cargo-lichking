@@ -165,7 +165,7 @@ impl License {
 impl FromStr for License {
   type Err = Void;
   fn from_str(s: &str) -> Result<License, Void> {
-    match s {
+    match s.trim() {
       "MIT"                => Ok(License::MIT),
       "X11"                => Ok(License::X11),
       "BSD-3-Clause"       => Ok(License::BSD_3_Clause),
@@ -211,8 +211,8 @@ impl fmt::Display for License {
       License::GPL_3_0       => w.write_str("GPL-3.0"),
       License::GPL_3_0Plus   => w.write_str("GPL-3.0+"),
       License::AGPL_1_0      => w.write_str("AGPL-1.0"),
-      License::Custom(ref s) => write!(w, "Custom ({})", s),
-      License::File(ref f)   => write!(w, "File ({})", f.to_string_lossy()),
+      License::Custom(ref s) => write!(w, "Custom({})", s),
+      License::File(ref f)   => write!(w, "File({})", f.to_string_lossy()),
       License::Multiple(ref ls)   => {
         try!(w.write_str("Any("));
         try!(fmt::Display::fmt(&ls[0], w));
