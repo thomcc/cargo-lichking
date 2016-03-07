@@ -12,7 +12,7 @@ dependencies manually.
 
 [travis-badge]: https://img.shields.io/travis/Nemo157/cargo-lichking/master.svg?style=flat-square
 [travis]: https://travis-ci.org/Nemo157/cargo-lichking
-[release-badge]: https://img.shields.io/github/release/Nemo157/cargo-lichking.svg?style=flat-square
+[release-badge]: https://img.shields.io/crates/v/cargo-lichking.svg?style=flat-square
 [crate]: https://crates.io/crates/cargo-lichking
 [Cargo]: https://github.com/rust-lang/cargo
 
