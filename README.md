@@ -1,11 +1,13 @@
-# cargo-lichking
-## automated LIcense CHecKING for rust
+# cargo-lichking <small>automated LIcense CHecKING for rust</small>
 
-`cargo lichking` is a [Cargo][] subcommand that checks licensing
-information for dependencies
+`cargo lichking` is a [Cargo][] subcommand that checks licensing information for
+dependencies. **Liches are not lawyers**, the information output from this tool
+is provided as a hint to where you may need to look for licensing issues but in
+no way represents legal advice or guarantees correctness.
 
-It will eventually have compatibility checking based off this [License
-Slide][] by David A. Wheeler.
+To get a list of all your (transitive) dependencies licenses just run `cargo
+lichking`. To check license compatibility based off this [License Slide][] by
+David A. Wheeler run `cargo lichking --check`.
 
 [Cargo]: https://github.com/rust-lang/cargo
 [License Slide]: http://www.dwheeler.com/essays/floss-license-slide.html

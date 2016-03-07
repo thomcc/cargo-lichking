@@ -21,8 +21,8 @@ use licensed::Licensed;
 const USAGE: &'static str = "
 Display info about licensing of dependencies
 
-Usage: cargo-lichking [options]
-       cargo-lichking --help
+Usage: cargo lichking [options]
+       cargo lichking --help
 
 Options:
     -h, --help              Print this message
@@ -56,6 +56,8 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
     println!("cargo-lichking {}", env!("CARGO_PKG_VERSION"));
     return Ok(None);
   }
+
+  println!("IANAL: This is not legal advice and is not guaranteed to be correct.");
 
   try!(config.shell().set_verbosity(flag_verbose, flag_quiet));
 
