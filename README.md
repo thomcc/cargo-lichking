@@ -20,14 +20,14 @@ dependencies manually.
 
 ### Installation
 
-To install simply run `cargo install`; unless you're using a homebrew installed
+To install simply run `cargo install cargo-lichking`; unless you're using a homebrew installed
 copy of openssl, then *"simply"* run:
 
 ```shall
 OPENSSL_ROOT_DIR=`brew --prefix openssl` \
 OPENSSL_LIB_DIR=`brew --prefix openssl`/lib \
 OPENSSL_INCLUDE_DIR=`brew --prefix openssl`/include \
-cargo install
+cargo install cargo-lichking
 ```
 
 ### Usage
