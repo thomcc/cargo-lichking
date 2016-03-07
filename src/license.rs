@@ -11,9 +11,12 @@ pub enum License {
   BSD_3_Clause,
   Apache_2_0,
   LGPL_2_0,
+  LGPL_2_1,
   LGPL_2_1Plus,
   LGPL_3_0,
+  LGPL_3_0Plus,
   MPL_1_1,
+  MPL_2_0,
   GPL_2_0,
   GPL_2_0Plus,
   GPL_3_0,
@@ -31,6 +34,134 @@ impl Default for License {
   }
 }
 
+impl License {
+  pub fn can_include(&self, other: &License) -> Option<bool> {
+    use self::License::*;
+
+    if let None = *other { return Some(false); }
+
+    if let Custom(_) = *self { return Option::None; }
+    if let Custom(_) = *other { return Option::None; }
+    if let File(_) = *self { return Option::None; }
+    if let File(_) = *other { return Option::None; }
+
+    if let Multiple(ref licenses) = *self {
+      for license in licenses {
+        if let Some(can_include) = license.can_include(other) {
+          if !can_include {
+            return Some(false);
+          }
+        } else {
+          return Option::None;
+        }
+      }
+      return Some(true);
+    }
+
+    if let Multiple(ref licenses) = *other {
+      let mut seen_none = false;
+      for license in licenses {
+        if let Some(can_include) = self.can_include(license) {
+          if can_include {
+            return Some(true);
+          }
+        } else {
+          seen_none = true;
+        }
+      }
+      if seen_none {
+        return Option::None;
+      } else {
+        return Some(false);
+      }
+    }
+
+    if let LGPL_2_0 = *self { return Option::None; /* TODO: unknown */ }
+    if let LGPL_2_0 = *other { return Option::None; /* TODO: unknown */ }
+
+    match *self {
+      None => match *other {
+         MIT | X11 | BSD_3_Clause =>
+           return Some(true),
+        _ => ()
+      },
+      MIT | X11 => match *other {
+         MIT | X11 =>
+           return Some(true),
+        _ => ()
+      },
+      BSD_3_Clause => match *other {
+         MIT | X11 | BSD_3_Clause =>
+           return Some(true),
+        _ => ()
+      },
+      Apache_2_0 => match *other {
+         MIT | X11 | BSD_3_Clause | Apache_2_0 =>
+           return Some(true),
+        _ => ()
+      },
+      MPL_1_1 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_1_1 =>
+           return Some(true),
+        _ => ()
+      },
+      MPL_2_0 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 =>
+           return Some(true),
+        _ => ()
+      },
+      LGPL_2_1 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 =>
+           return Some(true),
+        _ => ()
+      },
+      LGPL_2_1Plus => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus =>
+           return Some(true),
+        _ => ()
+      },
+      LGPL_3_0 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_3_0Plus | LGPL_3_0 =>
+           return Some(true),
+        _ => ()
+      },
+      LGPL_3_0Plus => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_3_0Plus =>
+           return Some(true),
+        _ => ()
+      },
+      GPL_2_0 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_2_0 =>
+           return Some(true),
+        _ => ()
+      },
+      GPL_2_0Plus => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus =>
+           return Some(true),
+        _ => ()
+      },
+      GPL_3_0 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus | GPL_3_0 =>
+           return Some(true),
+        _ => ()
+      },
+      GPL_3_0Plus => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus =>
+           return Some(true),
+        _ => ()
+      },
+      AGPL_1_0 => match *other {
+         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus | GPL_3_0 | AGPL_1_0 =>
+           return Some(true),
+        _ => ()
+      },
+      LGPL_2_0 | Custom(_) | File(_) | Multiple(_) => unreachable!(),
+    }
+
+    return Some(false);
+  }
+}
+
 impl FromStr for License {
   type Err = Void;
   fn from_str(s: &str) -> Result<License, Void> {
@@ -40,9 +171,12 @@ impl FromStr for License {
       "BSD-3-Clause"       => Ok(License::BSD_3_Clause),
       "Apache-2.0"         => Ok(License::Apache_2_0),
       "LGPL-2.0"           => Ok(License::LGPL_2_0),
+      "LGPL-2.1"           => Ok(License::LGPL_2_1),
       "LGPL-2.1+"          => Ok(License::LGPL_2_1Plus),
       "LGPL-3.0"           => Ok(License::LGPL_3_0),
+      "LGPL-3.0+"          => Ok(License::LGPL_3_0Plus),
       "MPL-1.1"            => Ok(License::MPL_1_1),
+      "MPL-2.0"            => Ok(License::MPL_2_0),
       "GPL-2.0"            => Ok(License::GPL_2_0),
       "GPL-2.0+"           => Ok(License::GPL_2_0Plus),
       "GPL-3.0"            => Ok(License::GPL_3_0),
@@ -66,9 +200,12 @@ impl fmt::Display for License {
       License::BSD_3_Clause  => w.write_str("BSD-3-Clause"),
       License::Apache_2_0    => w.write_str("Apache-2.0"),
       License::LGPL_2_0      => w.write_str("LGPL-2.0"),
+      License::LGPL_2_1      => w.write_str("LGPL-2.1"),
       License::LGPL_2_1Plus  => w.write_str("LGPL-2.1+"),
       License::LGPL_3_0      => w.write_str("LGPL-3.0"),
+      License::LGPL_3_0Plus  => w.write_str("LGPL-3.0+"),
       License::MPL_1_1       => w.write_str("MPL-1.1"),
+      License::MPL_2_0       => w.write_str("MPL-2.0"),
       License::GPL_2_0       => w.write_str("GPL-2.0"),
       License::GPL_2_0Plus   => w.write_str("GPL-2.0+"),
       License::GPL_3_0       => w.write_str("GPL-3.0"),
@@ -77,13 +214,13 @@ impl fmt::Display for License {
       License::Custom(ref s) => write!(w, "Custom ({})", s),
       License::File(ref f)   => write!(w, "File ({})", f.to_string_lossy()),
       License::Multiple(ref ls)   => {
-        try!(w.write_str("Any of "));
+        try!(w.write_str("Any("));
         try!(fmt::Display::fmt(&ls[0], w));
         for l in ls.iter().skip(1) {
           try!(w.write_str(", "));
           try!(fmt::Display::fmt(l, w));
         }
-        Ok(())
+        w.write_str(")")
       },
       License::None          => w.write_str("Unlicensed"),
     }
