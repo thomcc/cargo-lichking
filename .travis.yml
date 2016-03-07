@@ -29,3 +29,10 @@ deploy:
 
 after_deploy:
   - cargo publish --verbose --token "$CRATES_IO_TOKEN"
+
+addons:
+  apt:
+    sources:
+      - kalakris-cmake
+    packages:
+      - cmake
