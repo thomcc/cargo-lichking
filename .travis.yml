@@ -14,9 +14,13 @@ env:
   global:
     - secure: fnOFX2rnVaRMkxyZy8cw5ukIal541sUT8WK291roGsMreZU3nl/W3k/04nLU0mulab5vUv86EHE3b/4vJgHjwcdYZBfGJZz3CA3aik6iRfKRA8lcS8Kb/dDkxkzB8rTnBWYJayRl48ZBJf/GH0KlRMXqVt9SXt/55cZoIK2IneM0eGbk76kdqQ59zu/XKfk/0itFhQZr6mx7FrfLwvfOQFmQmegtAxAVMUDGSrU2SbraXnsqe225Uf/vlKv1sn9uhgwHgpwt0k3WBCvrdEG3hLmjyPtKBREAlm0dECmRRfzTLuSRADPhQpS4cKphYWK48Y36mK9wyCsWtu/RDyzMYLhWDn47DstcLG8IML00roe1PNh96XrZP5HffV40BeUkClXjtlPfZUUa9DQVcqtf0r0CBeFpdJuMgqGQWuUiEz9bO1y8Cf9NZsDiSwErb0WZ/sVkXGuv+9GDPCcCoJ9ccVsxkRbkf4E9bHPAPtOQdzXyELJHnX/kmsfpelY5UqYGxScQkjo6GcbJCjDWYxRIzut+1j0h2c/h8grXf6OvNNiYHkpDC4Gd4Re4iUI1aQLG74jOMRIfEJiN1M9orW9PyWxFTebEQD4rjgwe5i1B54r6rkVwVt/5w7DX6VssmwdtHIM7qzIlW34/4U30Qro0paSXAauDuE/i234EN6GgVSw=
 
+install:
+  - cargo install cargo-lichking
+
 script:
   - cargo build --release --verbose
   - cargo test --verbose
+  - cargo lichking check
 
 before_deploy:
   - cargo package --verbose
