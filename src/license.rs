@@ -34,6 +34,19 @@ impl Default for License {
   }
 }
 
+macro_rules! compatibility {
+  ($s:expr, $o:expr, { $($a:pat => $($b:pat),+;)+ }) => {
+    match $s {
+      $(
+        $a => match $o {
+          $($b)|+ => return Some(true),
+          _ => (),
+        }
+      ),*
+    }
+  };
+}
+
 impl License {
   pub fn can_include(&self, other: &License) -> Option<bool> {
     use self::License::*;
@@ -79,84 +92,32 @@ impl License {
     if let LGPL_2_0 = *self { return Option::None; /* TODO: unknown */ }
     if let LGPL_2_0 = *other { return Option::None; /* TODO: unknown */ }
 
-    match *self {
-      None => match *other {
-         MIT | X11 | BSD_3_Clause =>
-           return Some(true),
-        _ => ()
-      },
-      MIT | X11 => match *other {
-         MIT | X11 =>
-           return Some(true),
-        _ => ()
-      },
-      BSD_3_Clause => match *other {
-         MIT | X11 | BSD_3_Clause =>
-           return Some(true),
-        _ => ()
-      },
-      Apache_2_0 => match *other {
-         MIT | X11 | BSD_3_Clause | Apache_2_0 =>
-           return Some(true),
-        _ => ()
-      },
-      MPL_1_1 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_1_1 =>
-           return Some(true),
-        _ => ()
-      },
-      MPL_2_0 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 =>
-           return Some(true),
-        _ => ()
-      },
-      LGPL_2_1 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 =>
-           return Some(true),
-        _ => ()
-      },
-      LGPL_2_1Plus => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus =>
-           return Some(true),
-        _ => ()
-      },
-      LGPL_3_0 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_3_0Plus | LGPL_3_0 =>
-           return Some(true),
-        _ => ()
-      },
-      LGPL_3_0Plus => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_3_0Plus =>
-           return Some(true),
-        _ => ()
-      },
-      GPL_2_0 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_2_0 =>
-           return Some(true),
-        _ => ()
-      },
-      GPL_2_0Plus => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus =>
-           return Some(true),
-        _ => ()
-      },
-      GPL_3_0 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus | GPL_3_0 =>
-           return Some(true),
-        _ => ()
-      },
-      GPL_3_0Plus => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus =>
-           return Some(true),
-        _ => ()
-      },
-      AGPL_1_0 => match *other {
-         MIT | X11 | BSD_3_Clause | MPL_2_0 | Apache_2_0 | LGPL_2_1Plus | LGPL_2_1 | GPL_2_0Plus | GPL_3_0Plus | GPL_3_0 | AGPL_1_0 =>
-           return Some(true),
-        _ => ()
-      },
-      LGPL_2_0 | Custom(_) | File(_) | Multiple(_) => unreachable!(),
-    }
+    compatibility!(*self, *other, {
+      None         => MIT, X11, BSD_3_Clause;
+
+      LGPL_2_0     => LGPL_2_0; // TODO: probably allows more
+
+      MIT          => MIT, X11;
+      X11          => MIT, X11;
+      BSD_3_Clause => MIT, X11, BSD_3_Clause;
+      Apache_2_0   => MIT, X11, BSD_3_Clause, Apache_2_0;
+      MPL_1_1      => MIT, X11, BSD_3_Clause, MPL_1_1;
+      MPL_2_0      => MIT, X11, BSD_3_Clause, MPL_2_0;
+      LGPL_2_1Plus => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus;
+      LGPL_2_1     => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1;
+      LGPL_3_0Plus => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus;
+      LGPL_3_0     => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus, LGPL_3_0;
+      GPL_2_0Plus  => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus;
+      GPL_2_0      => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0;
+      GPL_3_0Plus  => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus;
+      GPL_3_0      => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0;
+      AGPL_1_0     => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_1_0;
+
+      // TODO: These are `unreachable!()`, can't figure out a nice way to allow this in the macro...
+      Custom(_)    => MIT;
+      File(_)      => MIT;
+      Multiple(_)  => MIT;
+    });
 
     return Some(false);
   }
