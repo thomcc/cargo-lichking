@@ -11,6 +11,7 @@ use cargo::core::dependency::Kind;
 use cargo::core::registry::PackageRegistry;
 use cargo::core::resolver::Resolve;
 use cargo::core::{ Source, Package };
+use cargo::core::source::SourceId;
 use cargo::ops;
 use cargo::sources::path::PathSource;
 use cargo::util::{ important_paths, CargoResult };
@@ -63,13 +64,13 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
 
   println!("IANAL: This is not legal advice and is not guaranteed to be correct.");
 
-  try!(config.shell().set_verbosity(flag_verbose, flag_quiet));
+  try!(config.configure_shell(Some(flag_verbose), Some(flag_quiet), &None));
 
   let mut source = try!(source(config, flag_manifest_path));
   let root = try!(source.root_package());
   let mut registry = try!(registry(config, &root));
-  let resolve = try!(ops::resolve_pkg(&mut registry, &root));
-  let packages = try!(get_packages(&resolve, &mut registry));
+  let resolve = try!(ops::resolve_pkg(&mut registry, &root, config));
+  let packages = try!(get_packages(&resolve, registry));
 
   if cmd_check {
     let mut fail = 0;
@@ -108,21 +109,18 @@ fn real_main(flags: Flags, config: &Config) -> CliResult<Option<()>> {
   }
 }
 
-fn get_packages(resolve: &Resolve, registry: &mut PackageRegistry) -> CargoResult<Vec<Package>> {
-  let mut packages = try!(ops::get_resolved_packages(resolve, registry))
-    .into_iter()
-    .map(|package| (package.package_id().clone(), package))
-    .collect::<HashMap<_, _>>();
+fn get_packages(resolve: &Resolve, registry: PackageRegistry) -> CargoResult<Vec<Package>> {
+  let packages = ops::get_resolved_packages(resolve, registry);
 
   let mut result = HashSet::new();
   let mut to_check = vec![resolve.root()];
   while let Some(id) = to_check.pop() {
-    if let Some(package) = packages.get(id) {
-      let deps = resolve.deps(id).unwrap();
-      for dep_id in deps {
-        let dep = package.dependencies().iter().find(|d| d.matches_id(dep_id)).unwrap();
-        if let Kind::Normal = dep.kind() {
-          if result.insert(dep_id) {
+    if let Ok(package) = packages.get(id) {
+      if result.insert(package) {
+        let deps = resolve.deps(id);
+        for dep_id in deps {
+          let dep = package.dependencies().iter().find(|d| d.matches_id(dep_id)).unwrap();
+          if let Kind::Normal = dep.kind() {
             to_check.push(dep_id);
           }
         }
@@ -130,12 +128,13 @@ fn get_packages(resolve: &Resolve, registry: &mut PackageRegistry) -> CargoResul
     }
   }
 
-  Ok(result.into_iter().filter_map(|id| packages.remove(id)).collect())
+  Ok(result.into_iter().cloned().collect())
 }
 
 fn source(config: &Config, manifest_path: Option<String>) -> CargoResult<PathSource> {
   let root = try!(important_paths::find_root_manifest_for_wd(manifest_path, config.cwd()));
-  let mut source = try!(PathSource::for_path(root.parent().unwrap(), config));
+  let parent = root.parent().unwrap();
+  let mut source = PathSource::new(parent, &try!(SourceId::for_path(parent)), config);
   try!(source.update());
   Ok(source)
 }
