@@ -35,7 +35,7 @@ impl Default for License {
 }
 
 macro_rules! compatibility {
-  ($s:expr, $o:expr, { $($a:pat => $($b:pat),+;)+ }) => {
+  ($s:expr, $o:expr, { $($a:pat => [$($b:pat),+])+ }) => {
     match $s {
       $(
         $a => match $o {
@@ -93,30 +93,30 @@ impl License {
     if let LGPL_2_0 = *other { return Option::None; /* TODO: unknown */ }
 
     compatibility!(*self, *other, {
-      None         => MIT, X11, BSD_3_Clause;
+      None         => [MIT, X11, BSD_3_Clause]
 
-      LGPL_2_0     => LGPL_2_0; // TODO: probably allows more
+      LGPL_2_0     => [LGPL_2_0] // TODO: probably allows more
 
-      MIT          => MIT, X11;
-      X11          => MIT, X11;
-      BSD_3_Clause => MIT, X11, BSD_3_Clause;
-      Apache_2_0   => MIT, X11, BSD_3_Clause, Apache_2_0;
-      MPL_1_1      => MIT, X11, BSD_3_Clause, MPL_1_1;
-      MPL_2_0      => MIT, X11, BSD_3_Clause, MPL_2_0;
-      LGPL_2_1Plus => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus;
-      LGPL_2_1     => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1;
-      LGPL_3_0Plus => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus;
-      LGPL_3_0     => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus, LGPL_3_0;
-      GPL_2_0Plus  => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus;
-      GPL_2_0      => MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0;
-      GPL_3_0Plus  => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus;
-      GPL_3_0      => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0;
-      AGPL_1_0     => MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_1_0;
+      MIT          => [MIT, X11]
+      X11          => [MIT, X11]
+      BSD_3_Clause => [MIT, X11, BSD_3_Clause]
+      Apache_2_0   => [MIT, X11, BSD_3_Clause, Apache_2_0]
+      MPL_1_1      => [MIT, X11, BSD_3_Clause, MPL_1_1]
+      MPL_2_0      => [MIT, X11, BSD_3_Clause, MPL_2_0]
+      LGPL_2_1Plus => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus]
+      LGPL_2_1     => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1]
+      LGPL_3_0Plus => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus]
+      LGPL_3_0     => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus, LGPL_3_0]
+      GPL_2_0Plus  => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus]
+      GPL_2_0      => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0]
+      GPL_3_0Plus  => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus]
+      GPL_3_0      => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0]
+      AGPL_1_0     => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_1_0]
 
       // TODO: These are `unreachable!()`, can't figure out a nice way to allow this in the macro...
-      Custom(_)    => MIT;
-      File(_)      => MIT;
-      Multiple(_)  => MIT;
+      Custom(_)    => [MIT]
+      File(_)      => [MIT]
+      Multiple(_)  => [MIT]
     });
 
     return Some(false);
