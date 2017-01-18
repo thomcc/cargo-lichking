@@ -11,7 +11,7 @@ pub fn run(packages: Vec<Package>, config: &Config) -> CargoResult<()> {
     for package in packages {
         license_to_packages
             .entry(package.license())
-            .or_insert(Vec::new())
+            .or_insert_with(Vec::new)
             .push(package);
     }
 

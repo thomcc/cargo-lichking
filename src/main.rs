@@ -59,7 +59,7 @@ fn real_main(options: Options, config: &Config) -> CliResult<Option<()>> {
 
     config.shell().warn("IANAL: This is not legal advice and is not guaranteed to be correct.")?;
 
-    let (root, packages) = load::resolve_packages(options.flag_manifest_path, &config)?;
+    let (root, packages) = load::resolve_packages(options.flag_manifest_path, config)?;
 
     if options.cmd_check {
         check::run(root, packages, config)?;

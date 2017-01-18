@@ -25,17 +25,18 @@ pub enum License {
   Custom(String),
   File(PathBuf),
   Multiple(Vec<License>),
-  None,
+  Unspecified,
 }
 
 impl Default for License {
   fn default() -> License {
-    License::None
+    License::Unspecified
   }
 }
 
 macro_rules! compatibility {
   ($s:expr, $o:expr, { $($a:pat => [$($b:pat),+])+ }) => {
+    #[allow(single_match)]
     match $s {
       $(
         $a => match $o {
@@ -51,12 +52,12 @@ impl License {
   pub fn can_include(&self, other: &License) -> Option<bool> {
     use self::License::*;
 
-    if let None = *other { return Some(false); }
+    if let Unspecified = *other { return Some(false); }
 
-    if let Custom(_) = *self { return Option::None; }
-    if let Custom(_) = *other { return Option::None; }
-    if let File(_) = *self { return Option::None; }
-    if let File(_) = *other { return Option::None; }
+    if let Custom(_) = *self { return None; }
+    if let Custom(_) = *other { return None; }
+    if let File(_) = *self { return None; }
+    if let File(_) = *other { return None; }
 
     if let Multiple(ref licenses) = *self {
       for license in licenses {
@@ -65,7 +66,7 @@ impl License {
             return Some(false);
           }
         } else {
-          return Option::None;
+          return None;
         }
       }
       return Some(true);
@@ -83,17 +84,17 @@ impl License {
         }
       }
       if seen_none {
-        return Option::None;
+        return None;
       } else {
         return Some(false);
       }
     }
 
-    if let LGPL_2_0 = *self { return Option::None; /* TODO: unknown */ }
-    if let LGPL_2_0 = *other { return Option::None; /* TODO: unknown */ }
+    if let LGPL_2_0 = *self { return None; /* TODO: unknown */ }
+    if let LGPL_2_0 = *other { return None; /* TODO: unknown */ }
 
     compatibility!(*self, *other, {
-      None         => [MIT, X11, BSD_3_Clause]
+      Unspecified         => [MIT, X11, BSD_3_Clause]
 
       LGPL_2_0     => [LGPL_2_0] // TODO: probably allows more
 
@@ -119,7 +120,7 @@ impl License {
       Multiple(_)  => [MIT]
     });
 
-    return Some(false);
+    Some(false)
   }
 }
 
@@ -183,7 +184,7 @@ impl fmt::Display for License {
         }
         w.write_str(")")
       },
-      License::None          => w.write_str("Unlicensed"),
+      License::Unspecified          => w.write_str("Unlicensed"),
     }
   }
 }
