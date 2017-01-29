@@ -1,4 +1,4 @@
-# cargo-lichking [![travis-badge][]][travis] [![downloads-badge][] ![release-badge][]][crate] [![license-badge][]](#license)
+# cargo-lichking [![travis-badge][]][travis] [![downloads-badge][] ![release-badge][]][crate] [![license-badge][]](#license) [![rust-version-badge][]][rust-version]
 
 Automated **li**cense **ch**ec**king** for rust. `cargo lichking` is a [Cargo][]
 subcommand that checks licensing information for dependencies.
@@ -14,9 +14,11 @@ dependencies manually.
 [downloads-badge]: https://img.shields.io/crates/d/cargo-lichking.svg?style=flat-square
 [release-badge]: https://img.shields.io/crates/v/cargo-lichking.svg?style=flat-square
 [license-badge]: https://img.shields.io/crates/l/cargo-lichking.svg?style=flat-square
+[rust-version-badge]: https://img.shields.io/badge/rust-1.13+-blue.svg?style=flat-square
 [travis]: https://travis-ci.org/Nemo157/cargo-lichking
 [crate]: https://crates.io/crates/cargo-lichking
 [Cargo]: https://github.com/rust-lang/cargo
+[rust-version]: .travis.yml#L5
 
 ### Installation
 
