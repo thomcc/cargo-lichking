@@ -1,30 +1,35 @@
 language: rust
-rust:
-  - nightly
-  - beta
-  - stable
 sudo: false
-
-matrix:
-  fast_finish: true
-  allow_failures:
-    - rust: nightly
+cache: cargo
+rust:
+  - 1.13.0
+  - stable
+  - beta
+  - nightly-2017-01-06
 
 env:
   global:
-    - secure: I1kLSc+9CDrHF8c3vz+Vz/R5HG5IZp07Vd9oV/rFdLqv/f3aC0Ugw63hzfOk9TZ55uRWa3AdzvYW3fEV44bSd6FTKjNcCKGa5/3kYNKkfVJbjtFCdLsAXJIXiqMzml+WmoFD4gNVrH1zETIQ9SQTmBN5FIjhzVc/Cs6cw4o/x+aglMADYLKhgDc1Dicl3E0w15kCd4+xuFFVbfB/xlD2pWvncU3FB/hrrPUARQ/QpHBk9QP8meaFx+URmjjT7qBTPQkhGRdYyGltDlKVxgHXGvw4F4nCbgD2aMgAYHn+ePr+L1vuNgImhL1m5JdPIF0dgF+55IJl0j6jN3jhzkjqSHBguG8kY0SZeEFqxfKlbwH/5PnKmOxiaR+GRQot7qhn5Ln2yfK/VSaJ8wcUgCR9raiD+qXFqs8RVmccXx7CHh/K/YcFYeEYlMMZWt7jGDDaorjQ5376exBJh18tNWWC/WTo9Lm5efgUXk9KCEVGcqrhQhHcruAbngGHfKsB4tD/+MqkbuLdZ/GqYQUuHrZ6H9CDJR641IyKTTymaFVNXBIRsvNBhUQV6CxKRQzwrVYNGdGnpgE8sTcizodKhTvFXhbRKFetXaK2hEwRue7U7qJ0xfB19z52X8QojNvwyqkrTyQXe488tGBrt89EaJ/RUq1W8QSkQwv4Uqh7jwuJw20=
+    - CLIPPY_VERSION=0.0.106
+    - secure: "I1kLSc+9CDrHF8c3vz+Vz/R5HG5IZp07Vd9oV/rFdLqv/f3aC0Ugw63hzfOk9TZ55uRWa3AdzvYW3fEV44bSd6FTKjNcCKGa5/3kYNKkfVJbjtFCdLsAXJIXiqMzml+WmoFD4gNVrH1zETIQ9SQTmBN5FIjhzVc/Cs6cw4o/x+aglMADYLKhgDc1Dicl3E0w15kCd4+xuFFVbfB/xlD2pWvncU3FB/hrrPUARQ/QpHBk9QP8meaFx+URmjjT7qBTPQkhGRdYyGltDlKVxgHXGvw4F4nCbgD2aMgAYHn+ePr+L1vuNgImhL1m5JdPIF0dgF+55IJl0j6jN3jhzkjqSHBguG8kY0SZeEFqxfKlbwH/5PnKmOxiaR+GRQot7qhn5Ln2yfK/VSaJ8wcUgCR9raiD+qXFqs8RVmccXx7CHh/K/YcFYeEYlMMZWt7jGDDaorjQ5376exBJh18tNWWC/WTo9Lm5efgUXk9KCEVGcqrhQhHcruAbngGHfKsB4tD/+MqkbuLdZ/GqYQUuHrZ6H9CDJR641IyKTTymaFVNXBIRsvNBhUQV6CxKRQzwrVYNGdGnpgE8sTcizodKhTvFXhbRKFetXaK2hEwRue7U7qJ0xfB19z52X8QojNvwyqkrTyQXe488tGBrt89EaJ/RUq1W8QSkQwv4Uqh7jwuJw20="
+
+before_script:
+  - case "$TRAVIS_RUST_VERSION" in nightly*)
+      cargo install clippy --vers $CLIPPY_VERSION --force;
+    esac
 
 script:
-  - cargo build --release --verbose
-  - cargo test --verbose
-  - cargo run -- lichking check
+  - cargo test
+  - case "$TRAVIS_RUST_VERSION" in nightly*)
+      cargo clippy -- -D warnings;
+    esac
+# - cargo run -- lichking check
 
 before_deploy:
-  - cargo package --verbose
+  - cargo package
 
 deploy:
   provider: script
-  script: cargo publish --verbose --token "$CRATES_IO_TOKEN"
+  script: cargo publish --token "$CRATES_IO_TOKEN"
   skip_cleanup: true
   on:
     tags: true
