@@ -1,73 +1,48 @@
-extern crate void;
+#[macro_use] extern crate clap;
 extern crate cargo;
 extern crate rustc_serialize;
+extern crate void;
 
 mod license;
 mod licensed;
 mod load;
 mod check;
 mod list;
+mod options;
+
+use std::process;
 
 use cargo::{ Config, CliResult };
 
-const USAGE: &'static str = "
-Display info about licensing of dependencies
-
-Usage: cargo lichking (list|check) [options]
-       cargo lichking --help
-
-Options:
-    -h, --help              Print this message
-    -V, --version           Print version info and exit
-    -v, --verbose ...       Use verbose output (-vv very verbose output)
-    -q, --quiet             Use quiet output
-    --manifest-path PATH    Path to the manifest to analyze
-    --color WHEN            Coloring: auto, always, never
-    --frozen                Require Cargo.lock and cache are up to date
-    --locked                Require Cargo.lock is up to date
-";
-
-#[derive(RustcDecodable)]
-struct Options {
-    cmd_list: bool,
-    cmd_check: bool,
-    flag_version: bool,
-    flag_verbose: u32,
-    flag_quiet: Option<bool>,
-    flag_manifest_path: Option<String>,
-    flag_color: Option<String>,
-    flag_frozen: bool,
-    flag_locked: bool,
-}
+use options::{ Options, Cmd };
 
 fn main() {
-    cargo::execute_main_without_stdin(real_main, false, USAGE);
+    let matches = Options::app(false).get_matches();
+    let options = Options::from_matches(matches);
+    let config = Config::default().expect("No idea why this would fail");
+    let result = real_main(options, &config);
+    if let Err(err) = result {
+        config.shell().error(err).expect("Can't do much");
+        process::exit(1);
+    }
 }
 
-fn real_main(options: Options, config: &Config) -> CliResult<Option<()>> {
+fn real_main(options: Options, config: &Config) -> CliResult<()> {
     config.configure(
-        options.flag_verbose,
-        options.flag_quiet,
-        &options.flag_color,
-        options.flag_frozen,
-        options.flag_locked)?;
-
-    if options.flag_version {
-        config.shell().say(format!("cargo-lichking {}", env!("CARGO_PKG_VERSION")), 0)?;
-        return Ok(None);
-    }
+        options.verbose,
+        Some(options.quiet),
+        &options.color,
+        options.frozen,
+        options.locked)?;
 
     config.shell().warn("IANAL: This is not legal advice and is not guaranteed to be correct.")?;
 
-    let (root, packages) = load::resolve_packages(options.flag_manifest_path, config)?;
+    let (root, packages) = load::resolve_packages(options.manifest_path, config)?;
 
-    if options.cmd_check {
-        check::run(root, packages, config)?;
-    } else if options.cmd_list {
-        list::run(packages, config)?;
-    } else {
-        unreachable!()
+    match options.cmd {
+        Cmd::Check => check::run(root, packages, config)?,
+        Cmd::List => list::run(packages, config)?,
     }
 
-    Ok(None)
+    Ok(())
 }
