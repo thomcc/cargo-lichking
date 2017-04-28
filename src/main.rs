@@ -27,7 +27,7 @@ fn main() {
     }
 }
 
-fn real_main(options: Options, config: &Config) -> CliResult<()> {
+fn real_main(options: Options, config: &Config) -> CliResult {
     config.configure(
         options.verbose,
         Some(options.quiet),

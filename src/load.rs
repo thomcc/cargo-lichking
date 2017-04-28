@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use cargo::core::dependency::Kind;
-use cargo::core::registry::PackageRegistry;
 use cargo::core::{ Package, Workspace };
 use cargo::ops;
 use cargo::util::important_paths::find_root_manifest_for_wd;
@@ -13,11 +12,7 @@ pub fn resolve_packages(
     let root = find_root_manifest_for_wd(manifest_path, config.cwd())?;
     let workspace = Workspace::new(&root, config)?;
     let current = workspace.current()?;
-    let mut registry = PackageRegistry::new(config)?;
-    registry.add_sources(&[current.package_id().source_id().clone()])?;
-    let resolve = ops::resolve_ws(&mut registry, &workspace)?;
-
-    let packages = ops::get_resolved_packages(&resolve, registry);
+    let (packages, resolve) = ops::resolve_ws(&workspace)?;
 
     let mut result = HashSet::new();
     let mut to_check = vec![current.package_id()];
