@@ -24,12 +24,13 @@ pub fn resolve_packages(
     while let Some(id) = to_check.pop() {
         if let Ok(package) = packages.get(id) {
             if result.insert(package) {
-                let deps = resolve.deps(id);
+                let deps = resolve.deps_not_replaced(id);
                 for dep_id in deps {
                     let dep = package.dependencies().iter()
                         .find(|d| d.matches_id(dep_id))
-                        .expect("The dependency tree should be fully resolved");
+                        .expect(&format!("Looking up a packages dependency in the package failed, failed to find '{}' in '{}'", dep_id, id));
                     if let Kind::Normal = dep.kind() {
+                        let dep_id = resolve.replacement(dep_id).unwrap_or(dep_id);
                         to_check.push(dep_id);
                     }
                 }
