@@ -1,6 +1,5 @@
 #[macro_use] extern crate clap;
 extern crate cargo;
-extern crate rustc_serialize;
 extern crate void;
 
 mod license;
