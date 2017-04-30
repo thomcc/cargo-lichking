@@ -14,7 +14,7 @@ dependencies manually.
 [downloads-badge]: https://img.shields.io/crates/d/cargo-lichking.svg?style=flat-square
 [release-badge]: https://img.shields.io/crates/v/cargo-lichking.svg?style=flat-square
 [license-badge]: https://img.shields.io/crates/l/cargo-lichking.svg?style=flat-square
-[rust-version-badge]: https://img.shields.io/badge/rust-1.13+-blue.svg?style=flat-square
+[rust-version-badge]: https://img.shields.io/badge/rust-1.15+-blue.svg?style=flat-square
 [travis]: https://travis-ci.org/Nemo157/cargo-lichking
 [crate]: https://crates.io/crates/cargo-lichking
 [Cargo]: https://github.com/rust-lang/cargo

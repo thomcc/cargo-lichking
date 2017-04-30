@@ -1,6 +1,5 @@
 #[macro_use] extern crate clap;
 extern crate cargo;
-extern crate rustc_serialize;
 extern crate void;
 
 mod license;
@@ -27,7 +26,7 @@ fn main() {
     }
 }
 
-fn real_main(options: Options, config: &Config) -> CliResult<()> {
+fn real_main(options: Options, config: &Config) -> CliResult {
     config.configure(
         options.verbose,
         Some(options.quiet),
