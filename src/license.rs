@@ -99,7 +99,7 @@ impl License {
             BSD_3_Clause => [MIT, X11, BSD_3_Clause]
             Apache_2_0   => [MIT, X11, BSD_3_Clause, Apache_2_0]
             MPL_1_1      => [MIT, X11, BSD_3_Clause, MPL_1_1]
-            MPL_2_0      => [MIT, X11, BSD_3_Clause, MPL_2_0]
+            MPL_2_0      => [MIT, X11, BSD_3_Clause, Apache_2_0, MPL_2_0]
             LGPL_2_1Plus => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus]
             LGPL_2_1     => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1]
             LGPL_3_0Plus => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus]
