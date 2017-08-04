@@ -1,7 +1,16 @@
+use std::str::FromStr;
+
 use clap::{ App, Arg, SubCommand, AppSettings, ArgMatches };
 
+pub enum By {
+    License,
+    Crate,
+}
+
 pub enum Cmd {
-    List,
+    List {
+        by: By
+    },
     Check,
 }
 
@@ -82,7 +91,15 @@ impl Options {
             SubCommand::with_name("check")
                 .about("Check that all dependencies have a compatible license with this crate"),
             SubCommand::with_name("list")
-                .about("List licensing of all dependencies"),
+                .about("List licensing of all dependencies")
+                .args(&[
+                    Arg::with_name("by")
+                        .long("by")
+                        .takes_value(true)
+                        .possible_values(&["license", "crate"])
+                        .default_value("license")
+                        .help("Whether to list crates per license or licenses per crate")
+                ])
         ]
     }
 
@@ -97,12 +114,30 @@ impl Options {
             locked: matches.is_present("locked"),
             cmd: match matches.subcommand() {
                 ("check", Some(_)) => Cmd::Check,
-                ("list", Some(_)) => Cmd::List,
+                ("list", Some(matches)) => {
+                    Cmd::List {
+                        by: matches.value_of("by")
+                            .expect("defaulted")
+                            .parse()
+                            .expect("constrained"),
+                    }
+                }
                 (_, _) => {
                     Options::app(true).get_matches();
                     unreachable!()
                 }
             },
+        }
+    }
+}
+
+impl FromStr for By {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "license" => Ok(By::License),
+            "crate" => Ok(By::Crate),
+            s => Err(format!("Cannot parse By from '{}'", s)),
         }
     }
 }
