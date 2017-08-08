@@ -40,7 +40,9 @@ fn real_main(options: Options, config: &Config) -> CliResult {
 
     match options.cmd {
         Cmd::Check => check::run(root, packages, config)?,
-        Cmd::List => list::run(packages, config)?,
+        Cmd::List { by } => {
+            list::run(packages, config, by)?
+        }
     }
 
     Ok(())
