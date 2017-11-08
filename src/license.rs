@@ -22,6 +22,7 @@ pub enum License {
     GPL_3_0,
     GPL_3_0Plus,
     AGPL_3_0,
+    AGPL_3_0Plus,
     Custom(String),
     File(PathBuf),
     Multiple(Vec<License>),
@@ -108,7 +109,8 @@ impl License {
             GPL_2_0      => [MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0]
             GPL_3_0Plus  => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus]
             GPL_3_0      => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0]
-            AGPL_3_0     => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0]
+            AGPL_3_0Plus => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus]
+            AGPL_3_0     => [MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus, AGPL_3_0]
 
             // TODO: These are `unreachable!()`, can't figure out a nice way to allow this in the macro...
             Custom(_)    => [MIT]
@@ -140,6 +142,7 @@ impl FromStr for License {
             "GPL-3.0"            => License::GPL_3_0,
             "GPL-3.0+"           => License::GPL_3_0Plus,
             "AGPL-3.0"           => License::AGPL_3_0,
+            "AGPL-3.0+"          => License::AGPL_3_0Plus,
             s if s.contains('/') => {
                 let mut licenses = s.split('/')
                     .map(str::parse)
@@ -172,6 +175,7 @@ impl fmt::Display for License {
             License::GPL_3_0       => write!(w, "GPL-3.0"),
             License::GPL_3_0Plus   => write!(w, "GPL-3.0+"),
             License::AGPL_3_0      => write!(w, "AGPL-3.0"),
+            License::AGPL_3_0Plus  => write!(w, "AGPL-3.0+"),
             License::Custom(ref s) => write!(w, "Custom({})", s),
             License::File(ref f)   => write!(w, "File({})", f.to_string_lossy()),
             License::Multiple(ref ls)   => {
