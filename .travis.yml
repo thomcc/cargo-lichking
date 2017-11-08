@@ -5,11 +5,11 @@ rust:
   - 1.15.1
   - stable
   - beta
-  - nightly-2017-01-06
+  - nightly-2017-11-08
 
 env:
   global:
-    - CLIPPY_VERSION=0.0.106
+    - CLIPPY_VERSION=0.0.169
     - secure: "I1kLSc+9CDrHF8c3vz+Vz/R5HG5IZp07Vd9oV/rFdLqv/f3aC0Ugw63hzfOk9TZ55uRWa3AdzvYW3fEV44bSd6FTKjNcCKGa5/3kYNKkfVJbjtFCdLsAXJIXiqMzml+WmoFD4gNVrH1zETIQ9SQTmBN5FIjhzVc/Cs6cw4o/x+aglMADYLKhgDc1Dicl3E0w15kCd4+xuFFVbfB/xlD2pWvncU3FB/hrrPUARQ/QpHBk9QP8meaFx+URmjjT7qBTPQkhGRdYyGltDlKVxgHXGvw4F4nCbgD2aMgAYHn+ePr+L1vuNgImhL1m5JdPIF0dgF+55IJl0j6jN3jhzkjqSHBguG8kY0SZeEFqxfKlbwH/5PnKmOxiaR+GRQot7qhn5Ln2yfK/VSaJ8wcUgCR9raiD+qXFqs8RVmccXx7CHh/K/YcFYeEYlMMZWt7jGDDaorjQ5376exBJh18tNWWC/WTo9Lm5efgUXk9KCEVGcqrhQhHcruAbngGHfKsB4tD/+MqkbuLdZ/GqYQUuHrZ6H9CDJR641IyKTTymaFVNXBIRsvNBhUQV6CxKRQzwrVYNGdGnpgE8sTcizodKhTvFXhbRKFetXaK2hEwRue7U7qJ0xfB19z52X8QojNvwyqkrTyQXe488tGBrt89EaJ/RUq1W8QSkQwv4Uqh7jwuJw20="
 
 before_script:
