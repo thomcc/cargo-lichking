@@ -17,7 +17,7 @@ use options::{ Options, Cmd };
 
 fn main() {
     let matches = Options::app(false).get_matches();
-    let options = Options::from_matches(matches);
+    let options = Options::from_matches(&matches);
     let config = Config::default().expect("No idea why this would fail");
     let result = real_main(options, &config);
     if let Err(err) = result {
@@ -39,7 +39,7 @@ fn real_main(options: Options, config: &Config) -> CliResult {
     let (root, packages) = load::resolve_packages(options.manifest_path, config)?;
 
     match options.cmd {
-        Cmd::Check => check::run(root, packages, config)?,
+        Cmd::Check => check::run(&root, packages, config)?,
         Cmd::List { by } => {
             list::run(packages, config, by)?
         }

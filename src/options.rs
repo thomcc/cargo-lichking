@@ -2,11 +2,13 @@ use std::str::FromStr;
 
 use clap::{ App, Arg, SubCommand, AppSettings, ArgMatches };
 
+#[derive(Copy, Clone)]
 pub enum By {
     License,
     Crate,
 }
 
+#[derive(Copy, Clone)]
 pub enum Cmd {
     List {
         by: By
@@ -14,6 +16,7 @@ pub enum Cmd {
     Check,
 }
 
+#[derive(Clone)]
 pub struct Options {
     pub verbose: u32,
     pub quiet: bool,
@@ -103,7 +106,7 @@ impl Options {
         ]
     }
 
-    pub fn from_matches(matches: ArgMatches) -> Options {
+    pub fn from_matches(matches: &ArgMatches) -> Options {
         let matches = matches.subcommand_matches("lichking").expect("required");
         Options {
             verbose: matches.occurrences_of("verbose") as u32,

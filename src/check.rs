@@ -3,7 +3,7 @@ use cargo::{ human, Config, CargoResult };
 
 use licensed::Licensed;
 
-pub fn run(root: Package, packages: Vec<Package>, config: &Config) -> CargoResult<()> {
+pub fn run(root: &Package, packages: Vec<Package>, config: &Config) -> CargoResult<()> {
     let mut fail = 0;
     let license = root.license();
 
