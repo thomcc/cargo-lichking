@@ -143,8 +143,9 @@ impl FromStr for License {
             "GPL-3.0+"           => License::GPL_3_0Plus,
             "AGPL-3.0"           => License::AGPL_3_0,
             "AGPL-3.0+"          => License::AGPL_3_0Plus,
-            s if s.contains('/') => {
+            s if s.contains('/') || s.contains(" OR ") => {
                 let mut licenses = s.split('/')
+                    .flat_map(|s| s.split(" OR "))
                     .map(str::parse)
                     .map(Result::unwrap)
                     .collect::<Vec<License>>();
