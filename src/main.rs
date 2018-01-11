@@ -36,12 +36,24 @@ fn real_main(options: Options, config: &Config) -> CliResult {
 
     config.shell().warn("IANAL: This is not legal advice and is not guaranteed to be correct.")?;
 
-    let (root, packages) = load::resolve_packages(options.manifest_path, config)?;
+    let manifest_path = options.manifest_path;
 
     match options.cmd {
-        Cmd::Check => check::run(&root, packages, config)?,
-        Cmd::List { by } => {
-            list::run(packages, config, by)?
+        Cmd::Check { package } => {
+            let mut error = Ok(());
+            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
+            for root in roots {
+                let packages = load::resolve_packages(manifest_path.clone(), config, vec![&root])?;
+                if let Err(err) = check::run(&root, packages, config) {
+                    error = Err(err);
+                }
+            }
+            error?;
+        }
+        Cmd::List { by, package } => {
+            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
+            let packages = load::resolve_packages(manifest_path, config, &roots)?;
+            list::run(packages, config, by)?;
         }
     }
 
