@@ -1,22 +1,33 @@
 use std::str::FromStr;
 
+use cargo::core::PackageIdSpec;
 use clap::{ App, Arg, SubCommand, AppSettings, ArgMatches };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum By {
     License,
     Crate,
 }
 
-#[derive(Copy, Clone)]
-pub enum Cmd {
-    List {
-        by: By
-    },
-    Check,
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SelectedPackage {
+    All,
+    Default,
+    Specific(PackageIdSpec),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+pub enum Cmd {
+    List {
+        by: By,
+        package: SelectedPackage,
+    },
+    Check {
+        package: SelectedPackage,
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Options {
     pub verbose: u32,
     pub quiet: bool,
@@ -92,7 +103,27 @@ impl Options {
     pub fn subcommands() -> Vec<App<'static, 'static>> {
         vec![
             SubCommand::with_name("check")
-                .about("Check that all dependencies have a compatible license with this crate"),
+                .about("Check that all dependencies have a compatible license with a package")
+                .args(&[
+                    Arg::with_name("all")
+                        .long("all")
+                        .help("Check all packages in workspace"),
+                    Arg::with_name("package")
+                        .short("p").long("package")
+                        .takes_value(true).value_name("SPEC")
+                        .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
+                        .help("Package to check"),
+                ])
+                .after_help("\
+If the --package argument is given, then SPEC is a package id specification \
+which indicates which package should be checked. If it is not given, then the \
+current package is checked. For more information on SPEC and its format, see \
+the `cargo help pkgid` command.
+
+All packages in the workspace are checked if the `--all` flag is supplied. \
+The `--all` flag may be supplied in the presence of a virtual manifest. \
+                "),
+
             SubCommand::with_name("list")
                 .about("List licensing of all dependencies")
                 .args(&[
@@ -101,8 +132,26 @@ impl Options {
                         .takes_value(true)
                         .possible_values(&["license", "crate"])
                         .default_value("license")
-                        .help("Whether to list crates per license or licenses per crate")
+                        .help("Whether to list crates per license or licenses per crate"),
+                    Arg::with_name("all")
+                        .long("all")
+                        .help("List dependencies of all packages in workspace"),
+                    Arg::with_name("package")
+                        .short("p").long("package")
+                        .takes_value(true).value_name("SPEC")
+                        .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
+                        .help("Package to list dependencies of"),
                 ])
+                .after_help("\
+If the --package argument is given, then SPEC is a package id specification \
+which indicates of which package dependencies should be listed. If it is not \
+given, then the current package's dependencies are listed. For more \
+information on SPEC and its format, see the `cargo help pkgid` command.
+
+Dependencies of all packages in the workspace are listed if the `--all` flag \
+is supplied. The `--all` flag may be supplied in the presence of a virtual \
+manifest. \
+                "),
         ]
     }
 
@@ -116,13 +165,32 @@ impl Options {
             frozen: matches.is_present("frozen"),
             locked: matches.is_present("locked"),
             cmd: match matches.subcommand() {
-                ("check", Some(_)) => Cmd::Check,
+                ("check", Some(matches)) => {
+                    Cmd::Check {
+                        package: if matches.is_present("all") {
+                            SelectedPackage::All
+                        } else {
+                            matches.value_of("package")
+                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
+                                .map(SelectedPackage::Specific)
+                                .unwrap_or(SelectedPackage::Default)
+                        }
+                    }
+                }
                 ("list", Some(matches)) => {
                     Cmd::List {
                         by: matches.value_of("by")
                             .expect("defaulted")
                             .parse()
                             .expect("constrained"),
+                        package: if matches.is_present("all") {
+                            SelectedPackage::All
+                        } else {
+                            matches.value_of("package")
+                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
+                                .map(SelectedPackage::Specific)
+                                .unwrap_or(SelectedPackage::Default)
+                        }
                     }
                 }
                 (_, _) => {

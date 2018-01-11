@@ -6,16 +6,41 @@ use cargo::ops;
 use cargo::util::important_paths::find_root_manifest_for_wd;
 use cargo::{ Config, CargoResult };
 
-pub fn resolve_packages(
+use options::SelectedPackage;
+
+pub fn resolve_roots(
         manifest_path: Option<String>,
-        config: &Config) -> CargoResult<(Package, Vec<Package>)> {
-    let root = find_root_manifest_for_wd(manifest_path, config.cwd())?;
-    let workspace = Workspace::new(&root, config)?;
-    let current = workspace.current()?;
+        config: &Config,
+        package: SelectedPackage) -> CargoResult<Vec<Package>> {
+    let root_manifest = find_root_manifest_for_wd(manifest_path, config.cwd())?;
+    let workspace = Workspace::new(&root_manifest, config)?;
+
+    Ok(match package {
+        SelectedPackage::All => {
+            workspace.members().cloned().collect()
+        }
+        SelectedPackage::Default => {
+            vec![workspace.current()?.clone()]
+        }
+        SelectedPackage::Specific(spec) => {
+            let (packages, _) = ops::resolve_ws(&workspace)?;
+            let package_id = spec.query(packages.package_ids())?;
+            vec![packages.get(package_id)?.clone()]
+        }
+    })
+}
+
+pub fn resolve_packages<'a, I: IntoIterator<Item=&'a Package>>(
+        manifest_path: Option<String>,
+        config: &Config,
+        roots: I) -> CargoResult<Vec<Package>> {
+    let root_manifest = find_root_manifest_for_wd(manifest_path, config.cwd())?;
+    let workspace = Workspace::new(&root_manifest, config)?;
+
     let (packages, resolve) = ops::resolve_ws(&workspace)?;
 
     let mut result = HashSet::new();
-    let mut to_check = vec![current.package_id()];
+    let mut to_check = roots.into_iter().map(|p| p.package_id()).collect::<Vec<_>>();
     while let Some(id) = to_check.pop() {
         if let Ok(package) = packages.get(id) {
             if result.insert(package) {
@@ -33,5 +58,5 @@ pub fn resolve_packages(
         }
     }
 
-    Ok((current.clone(), result.into_iter().cloned().collect()))
+    Ok(result.into_iter().cloned().collect())
 }
