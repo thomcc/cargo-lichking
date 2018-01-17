@@ -72,12 +72,10 @@ fn check_against_template(text: &str, license: &License) -> Confidence {
             }
         }
         template_freq
+    } else if let Some(template) = license.template() {
+        calculate_frequency(template)
     } else {
-        if let Some(template) = license.template() {
-            calculate_frequency(template)
-        } else {
-            return Confidence::Unsure
-        }
+        return Confidence::Unsure
     };
 
     let total: u32 = template_freq.values().sum();
