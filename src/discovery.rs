@@ -43,10 +43,10 @@ fn calculate_frequency(text: &str) -> HashMap<String, u32> {
     freq
 }
 
-fn compare(mut text_freq: HashMap<String, u32>, template_freq: HashMap<String, u32>) -> u32 {
+fn compare(mut text_freq: HashMap<String, u32>, template_freq: &HashMap<String, u32>) -> u32 {
     let mut errors = 0;
 
-    for (word, &count) in &template_freq {
+    for (word, &count) in template_freq {
         let text_count = text_freq.remove(word).unwrap_or(0);
         let diff = ((text_count as i32) - (count as i32)).abs() as u32;
         errors += diff;
@@ -79,7 +79,7 @@ fn check_against_template(text: &str, license: &License) -> Confidence {
     };
 
     let total: u32 = template_freq.values().sum();
-    let errors = compare(text_freq, template_freq);
+    let errors = compare(text_freq, &template_freq);
     let score = (errors as f32) / (total as f32);
 
     if score < HIGH_CONFIDENCE_LIMIT {
