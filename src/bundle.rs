@@ -34,7 +34,7 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
     match variant {
         Bundle::Inline { file } => {
             if let Some(file) = file {
-                inline(&mut context, &mut File::open(file)?)?;
+                inline(&mut context, &mut File::create(file)?)?;
             } else {
                 inline(&mut context, &mut io::stdout())?;
             }
@@ -70,7 +70,7 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
     }
 }
 
-fn inline(context: &mut Context, mut out: &mut io::Write) -> CargoResult<()> {
+fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
     writeln!(out, "")?;
     for package in context.packages {
@@ -80,7 +80,7 @@ fn inline(context: &mut Context, mut out: &mut io::Write) -> CargoResult<()> {
     Ok(())
 }
 
-fn inline_package(context: &mut Context, package: &Package, mut out: &mut io::Write) -> CargoResult<()> {
+fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write) -> CargoResult<()> {
     let license = package.license();
     writeln!(out, " * {} under {}:", package.name(), license)?;
     writeln!(out, "")?;
@@ -126,7 +126,7 @@ fn inline_package(context: &mut Context, package: &Package, mut out: &mut io::Wr
     Ok(())
 }
 
-fn inline_license(context: &mut Context, package: &Package, license: &License, mut out: &mut io::Write) -> CargoResult<()> {
+fn inline_license(context: &mut Context, package: &Package, license: &License, out: &mut io::Write) -> CargoResult<()> {
     let texts = find_license_text(package, license)?;
     if let Some(text) = choose(context, package, license, texts)? {
         for line in text.text.lines() {
