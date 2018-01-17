@@ -1,3 +1,12 @@
+[root]
+name = "cargo-lichking"
+version = "0.6.0"
+dependencies = [
+ "cargo 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.29.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
 [[package]]
 name = "advapi32-sys"
 version = "0.2.0"
@@ -106,15 +115,6 @@ dependencies = [
  "toml 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "cargo-lichking"
-version = "0.6.0"
-dependencies = [
- "cargo 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.29.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
