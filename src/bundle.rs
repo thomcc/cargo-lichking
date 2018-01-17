@@ -140,44 +140,42 @@ fn choose(context: &mut Context, package: &Package, license: &License, texts: Ve
     let (mut confident, texts): (Vec<LicenseText>, Vec<LicenseText>) = texts.into_iter().partition(|text| text.confidence == Confidence::Confident);
     let (mut semi_confident, mut unconfident): (Vec<LicenseText>, Vec<LicenseText>) = texts.into_iter().partition(|text| text.confidence == Confidence::SemiConfident);
 
-    if confident.len() == 1 {
-        return Ok(Some(confident.swap_remove(0)));
-    } else if confident.len() > 1 {
-        context.shell.error(format_args!("{} has multiple candidates for license {}:", package.name(), license))?;
-        for text in &confident {
-            context.shell.error(format_args!("    {}", text.path.display()))?;
+    Ok(Some({
+        if confident.len() == 1 {
+            confident.swap_remove(0)
+        } else if confident.len() > 1 {
+            context.shell.error(format_args!("{} has multiple candidates for license {}:", package.name(), license))?;
+            for text in &confident {
+                context.shell.error(format_args!("    {}", text.path.display()))?;
+            }
+            confident.swap_remove(0)
+        } else if semi_confident.len() == 1 {
+            context.shell.warn(format_args!("{} has only a low-confidence candidate for license {}:", package.name(), license))?;
+            context.shell.warn(format_args!("    {}", semi_confident[0].path.display()))?;
+            semi_confident.swap_remove(0)
+        } else if semi_confident.len() > 1 {
+            context.low_quality_license = true;
+            context.shell.error(format_args!("{} has multiple low-confidence candidates for license {}:", package.name(), license))?;
+            for text in &semi_confident {
+                context.shell.error(format_args!("    {}", text.path.display()))?;
+            }
+            semi_confident.swap_remove(0)
+        } else if unconfident.len() == 1 {
+            context.low_quality_license = true;
+            context.shell.warn(format_args!("{} has only a very low-confidence candidate for license {}:", package.name(), license))?;
+            context.shell.warn(format_args!("    {}", unconfident[0].path.display()))?;
+            unconfident.swap_remove(0)
+        } else if unconfident.len() > 1 {
+            context.low_quality_license = true;
+            context.shell.error(format_args!("{} has multiple very low-confidence candidates for license {}:", package.name(), license))?;
+            for text in &unconfident {
+                context.shell.error(format_args!("    {}", text.path.display()))?;
+            }
+            unconfident.swap_remove(0)
+        } else {
+            context.shell.error(format_args!("{} has no candidate texts for license {} in {}", package.name(), license, package.root().display()))?;
+            context.missing_license = true;
+            return Ok(None);
         }
-        return Ok(Some(confident.swap_remove(0)));
-    }
-
-    if semi_confident.len() == 1 {
-        context.shell.warn(format_args!("{} has only a low-confidence candidate for license {}:", package.name(), license))?;
-        context.shell.warn(format_args!("    {}", semi_confident[0].path.display()))?;
-        return Ok(Some(semi_confident.swap_remove(0)));
-    } else if semi_confident.len() > 1 {
-        context.low_quality_license = true;
-        context.shell.error(format_args!("{} has multiple low-confidence candidates for license {}:", package.name(), license))?;
-        for text in &semi_confident {
-            context.shell.error(format_args!("    {}", text.path.display()))?;
-        }
-        return Ok(Some(semi_confident.swap_remove(0)));
-    }
-
-    if unconfident.len() == 1 {
-        context.low_quality_license = true;
-        context.shell.warn(format_args!("{} has only a very low-confidence candidate for license {}:", package.name(), license))?;
-        context.shell.warn(format_args!("    {}", unconfident[0].path.display()))?;
-        return Ok(Some(unconfident.swap_remove(0)));
-    } else if unconfident.len() > 1 {
-        context.low_quality_license = true;
-        context.shell.error(format_args!("{} has multiple very low-confidence candidates for license {}:", package.name(), license))?;
-        for text in &unconfident {
-            context.shell.error(format_args!("    {}", text.path.display()))?;
-        }
-        return Ok(Some(unconfident.swap_remove(0)));
-    }
-
-    context.shell.error(format_args!("{} has no candidate texts for license {} in {}", package.name(), license, package.root().display()))?;
-    context.missing_license = true;
-    return Ok(None);
+    }))
 }
