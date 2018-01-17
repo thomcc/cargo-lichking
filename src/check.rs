@@ -1,5 +1,5 @@
 use cargo::core::Package;
-use cargo::{ human, Config, CargoResult };
+use cargo::{ Config, CargoResult };
 
 use licensed::Licensed;
 
@@ -21,7 +21,7 @@ pub fn run(root: &Package, packages: Vec<Package>, config: &Config) -> CargoResu
     }
 
     if fail > 0 {
-        Err(human("Incompatible license"))
+        Err("Incompatible license".into())
     } else {
         Ok(())
     }

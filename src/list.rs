@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use cargo::core::Package;
-use cargo::{ Config, CargoResult };
+use cargo::CargoResult;
 
 use licensed::Licensed;
 use options::By;
 
-pub fn run(mut packages: Vec<Package>, config: &Config, by: By) -> CargoResult<()> {
+pub fn run(mut packages: Vec<Package>, by: By) -> CargoResult<()> {
     match by {
         By::License => {
             let mut license_to_packages = HashMap::new();
@@ -23,13 +23,13 @@ pub fn run(mut packages: Vec<Package>, config: &Config, by: By) -> CargoResult<(
 
             for (license, packages) in license_to_packages {
                 let packages = packages.iter().map(|package| package.name()).collect::<Vec<&str>>().join(", ");
-                config.shell().say(format!("{}: {}", license, packages), 0)?;
+                println!("{}: {}", license, packages);
             }
         }
         By::Crate => {
             packages.sort_by_key(|package| package.name().to_owned());
             for package in packages {
-                config.shell().say(format!("{}: {}", package.name(), package.license()), 0)?;
+                println!("{}: {}", package.name(), package.license());
             }
         }
     }
