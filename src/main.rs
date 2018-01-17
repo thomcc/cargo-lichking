@@ -2,10 +2,12 @@
 
 #[macro_use] extern crate clap;
 extern crate cargo;
+extern crate regex;
 extern crate void;
 
 mod bundle;
 mod check;
+mod discovery;
 mod license;
 mod licensed;
 mod list;
