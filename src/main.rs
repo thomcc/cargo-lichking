@@ -63,7 +63,7 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
             // TODO: Package selection support
             let roots = load::resolve_roots(manifest_path.clone(), config, SelectedPackage::Default)?;
             let packages = load::resolve_packages(manifest_path, config, &roots)?;
-            bundle::run(roots[0].clone(), packages, variant)?;
+            bundle::run(roots[0].clone(), packages, config, variant)?;
         }
     }
 
