@@ -128,14 +128,17 @@ pub fn find_license_text(package: &Package, license: &License) -> CargoResult<Ve
     }
 
     fn name_matches(name: &str, license: &License) -> bool {
+        let name = name.to_uppercase();
         match *license {
-            License::MIT => name == "LICENSE-MIT",
             License::Apache_2_0 => name == "LICENSE-APACHE",
             License::Custom(ref custom) => {
-                name.to_uppercase() == custom.to_uppercase()
-                    || name.to_uppercase() == format!("LICENSE-{}", custom.to_uppercase())
+                let custom = custom.to_uppercase();
+                name == custom || name == format!("LICENSE-{}", custom)
             }
-            _ => false,
+            ref license => {
+                let license = license.to_string().to_uppercase();
+                name == license || name == format!("LICENSE-{}", license)
+            }
         }
     }
 
