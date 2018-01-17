@@ -1,6 +1,6 @@
 [package]
 name = "cargo-lichking"
-version = "0.5.4"
+version = "0.6.0"
 authors = ["Wim Looman <wim@nemo157.com>"]
 
 description = "Display info about licensing of dependencies"
@@ -13,6 +13,6 @@ keywords = ["cargo", "licensing"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-cargo = "0.18"
+cargo = "0.24"
 void = "1.0"
 clap = "2.20"
