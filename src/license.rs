@@ -132,6 +132,7 @@ impl License {
             License::Unlicense     => include_str!("licenses/Unlicense"),
             License::MIT           => include_str!("licenses/MIT"),
             License::Apache_2_0    => include_str!("licenses/Apache-2.0"),
+            License::BSD_3_Clause    => include_str!("licenses/BSD-3-Clause"),
             License::Multiple(_)   => { panic!("TODO: Refactor multiple handling") }
             _                      => { return None }
         })
