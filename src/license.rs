@@ -195,17 +195,16 @@ impl fmt::Display for License {
             License::GPL_3_0Plus   => write!(w, "GPL-3.0-or-later"),
             License::AGPL_3_0      => write!(w, "AGPL-3.0-only"),
             License::AGPL_3_0Plus  => write!(w, "AGPL-3.0-or-later"),
-            License::Custom(ref s) => write!(w, "Custom({})", s),
-            License::File(ref f)   => write!(w, "File({})", f.to_string_lossy()),
+            License::Custom(ref s) => write!(w, "{}", s),
+            License::File(ref f)   => write!(w, "License specified in file ({})", f.to_string_lossy()),
             License::Multiple(ref ls)   => {
-                write!(w, "Any({}", ls[0])?;
+                write!(w, "{}", ls[0])?;
                 for l in ls.iter().skip(1) {
-                    write!(w, ", {}", l)?;
+                    write!(w, " / {}", l)?;
                 }
-                write!(w, ")")
+                Ok(())
             },
-            License::Unspecified          => write!(w, "Unlicensed"),
+            License::Unspecified          => write!(w, "No license specified"),
         }
     }
 }
-
