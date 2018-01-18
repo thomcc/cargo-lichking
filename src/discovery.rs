@@ -94,6 +94,7 @@ fn check_against_template(text: &str, license: &License) -> Confidence {
 pub fn find_generic_license_text(package: &Package, license: &License) -> CargoResult<Option<LicenseText>> {
     fn generic_license_name(name: &str) -> bool {
         name.to_uppercase() == "LICENSE"
+            || name.to_uppercase() == "LICENCE"
             || name.to_uppercase() == "LICENSE.MD"
             || name.to_uppercase() == "LICENSE.TXT"
     }
