@@ -2,20 +2,23 @@
 
 #[macro_use] extern crate clap;
 extern crate cargo;
+extern crate regex;
 extern crate void;
 
+mod bundle;
+mod check;
+mod discovery;
 mod license;
 mod licensed;
-mod load;
-mod check;
 mod list;
+mod load;
 mod options;
 
 use std::process;
 
 use cargo::{ Config, CliResult };
 
-use options::{ Options, Cmd };
+use options::{ Options, Cmd, SelectedPackage };
 
 fn main() {
     let matches = Options::app(false).get_matches();
@@ -57,6 +60,12 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
             let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
             let packages = load::resolve_packages(manifest_path, config, &roots)?;
             list::run(packages, by)?;
+        }
+        Cmd::Bundle { variant } => {
+            // TODO: Package selection support
+            let roots = load::resolve_roots(manifest_path.clone(), config, SelectedPackage::Default)?;
+            let packages = load::resolve_packages(manifest_path, config, &roots)?;
+            bundle::run(roots[0].clone(), packages, config, variant)?;
         }
     }
 

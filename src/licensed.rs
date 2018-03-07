@@ -1,4 +1,5 @@
 use cargo::core::Package;
+
 use license::License;
 
 pub trait Licensed {
