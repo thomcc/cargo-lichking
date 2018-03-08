@@ -45,6 +45,9 @@ pub enum Cmd {
     Bundle {
         variant: Bundle,
     },
+    ThirdParty {
+        full: bool,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -236,9 +239,18 @@ Dependencies of all packages in the workspace are listed if the `--all` flag \
 is supplied. The `--all` flag may be supplied in the presence of a virtual \
 manifest. \
                 "),
+
             SubCommand::with_name("bundle")
                 .about("Bundle all dependencies licenses ready for distribution")
                 .args(&Bundle::args()),
+
+            SubCommand::with_name("thirdparty")
+                .about("List dependencies of cargo-lichking")
+                .args(&[
+                    Arg::with_name("full")
+                        .long("full")
+                        .help("Whether to list license content for each dependency"),
+                ]),
         ]
     }
 
@@ -285,9 +297,14 @@ manifest. \
                         variant: Bundle::from_matches(matches),
                     }
                 }
-                (_, _) => {
+                ("thirdparty", Some(matches)) => {
+                    Cmd::ThirdParty {
+                        full: matches.is_present("full"),
+                    }
+                }
+                (subcommand, _) => {
                     Options::app(true).get_matches();
-                    unreachable!()
+                    panic!("Unexpected subcommand {}", subcommand)
                 }
             },
         }
