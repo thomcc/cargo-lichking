@@ -20,7 +20,10 @@ pub enum SelectedPackage {
 pub enum Bundle {
     Inline {
         file: Option<String>,
-    }
+    },
+    NameOnly {
+        file: Option<String>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -54,9 +57,22 @@ impl Bundle {
             Arg::with_name("variant")
                 .long("variant")
                 .takes_value(true)
-                .possible_value("inline")
+                .possible_values(&["inline", "name-only"])
                 .default_value("inline")
-                .help("What sort of bundle to produce"),
+                .help("")
+                .long_help("\
+What sort of bundle to produce:
+
+    inline:
+        Output a single file to location specified by --file containing the
+        name and content of the license used by each dependency
+
+    name-only:
+        Output a single file to location specified by --file containing just
+        the name of the license used by each dependency
+
+\
+                "),
             Arg::with_name("file")
                 .long("file")
                 .takes_value(true).value_name("FILE")
@@ -69,7 +85,10 @@ impl Bundle {
             "inline" => Bundle::Inline {
                 file: matches.value_of("file").map(ToOwned::to_owned),
             },
-            _ => unreachable!(),
+            "name-only" => Bundle::NameOnly {
+                file: matches.value_of("file").map(ToOwned::to_owned),
+            },
+            variant => panic!("Unexpected variant value {}", variant),
         }
     }
 }
