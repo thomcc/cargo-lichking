@@ -24,6 +24,9 @@ pub enum Bundle {
     NameOnly {
         file: Option<String>,
     },
+    Source {
+        file: Option<String>,
+    },
     Split {
         file: Option<String>,
         dir: String,
@@ -61,7 +64,7 @@ impl Bundle {
             Arg::with_name("variant")
                 .long("variant")
                 .takes_value(true)
-                .possible_values(&["inline", "name-only", "split"])
+                .possible_values(&["inline", "name-only", "source", "split"])
                 .default_value("inline")
                 .requires_if("split", "dir")
                 .help("")
@@ -75,6 +78,10 @@ What sort of bundle to produce:
     name-only:
         Output a single file to location specified by --file containing just
         the name of the license used by each dependency
+
+    source:
+        Output a single file to location specified by --file containing Rust
+        source with the name and content of the license used by each dependency
 
     split:
         Output a file to location specified by --file containing the name of
@@ -101,6 +108,9 @@ What sort of bundle to produce:
                 file: matches.value_of("file").map(ToOwned::to_owned),
             },
             "name-only" => Bundle::NameOnly {
+                file: matches.value_of("file").map(ToOwned::to_owned),
+            },
+            "source" => Bundle::Source {
                 file: matches.value_of("file").map(ToOwned::to_owned),
             },
             "split" => Bundle::Split {

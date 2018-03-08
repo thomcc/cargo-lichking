@@ -47,6 +47,13 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
                 name_only(&mut context, &mut io::stdout())?;
             }
         }
+        Bundle::Source { file } => {
+            if let Some(file) = file {
+                source(&mut context, &mut File::create(file)?)?;
+            } else {
+                source(&mut context, &mut io::stdout())?;
+            }
+        }
         Bundle::Split { file, dir } => {
             if let Some(file) = file {
                 split(&mut context, &mut File::create(file)?, dir)?;
@@ -106,6 +113,35 @@ fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     Ok(())
 }
 
+fn source(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
+    out.write_all(b"
+pub enum License {
+    And {
+        licenses: &'static [License],
+    },
+    Single {
+        name: &'static str,
+        text: &'static str,
+    },
+    MissingContent {
+        name: &'static str,
+    },
+}
+
+pub struct LicensedCrate {
+    name: &'static str,
+    license: License,
+}
+
+pub const CRATES: &'static [LicensedCrate] = &[
+")?;
+    for package in context.packages {
+        source_package(context, package, out)?;
+    }
+    out.write_all(b"];")?;
+    Ok(())
+}
+
 fn split<P: AsRef<Path>>(context: &mut Context, out: &mut io::Write, dir: P) -> CargoResult<()> {
     fs::create_dir_all(dir.as_ref())?;
     writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
@@ -154,6 +190,86 @@ fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write)
             }
             license => {
                 inline_license(context, package, &license, out)?;
+            }
+        }
+    }
+    writeln!(out, "")?;
+    Ok(())
+}
+
+fn source_package(context: &mut Context, package: &Package, out: &mut io::Write) -> CargoResult<()> {
+    let license = package.license();
+    if let Some(text) = find_generic_license_text(package, &license)? {
+        match text.confidence {
+            Confidence::Confident => (),
+            Confidence::SemiConfident => {
+                context.shell.warn(format_args!("{} has only a low-confidence candidate for license {}:", package.name(), license))?;
+                context.shell.warn(format_args!("    {}", text.path.display()))?;
+            }
+            Confidence::Unsure => {
+                context.shell.error(format_args!("{} has only a very low-confidence candidate for license {}:", package.name(), license))?;
+                context.shell.error(format_args!("    {}", text.path.display()))?;
+            }
+        }
+        writeln!(out, "
+    LicensedCrate {{
+        name: {:?},
+        license: License::Single {{
+            name: {:?},
+            text: {:?},
+        }},
+    }},", package.name(), license.to_string(), text.text)?;
+    } else {
+        match license {
+            License::Unspecified => {
+                context.shell.error(format_args!("{} does not specify a license", package.name()))?;
+            }
+            License::Multiple(licenses) => {
+                writeln!(out, "
+    LicensedCrate {{
+        name: {:?},
+        license: License::And {{
+            licenses: &[", package.name())?;
+                for license in licenses {
+                    let texts = find_license_text(package, &license)?;
+                    if let Some(text) = choose(context, package, &license, texts)? {
+                        writeln!(out, "
+                License::Single {{
+                    name: {:?},
+                    text: {:?},
+                }},", license.to_string(), text.text)?;
+                    } else {
+                        writeln!(out, "
+                License::MissingContent {{
+                    name: {:?},
+                }},", license.to_string())?;
+                    }
+                }
+                writeln!(out, "
+            ],
+        }},
+    }},")?;
+            }
+            license => {
+                let texts = find_license_text(package, &license)?;
+                if let Some(text) = choose(context, package, &license, texts)? {
+                    writeln!(out, "
+    LicensedCrate {{
+        name: {:?},
+        license: License::Single {{
+            name: {:?},
+            text: {:?},
+        }},
+    }},", package.name(), license.to_string(), text.text)?;
+                } else {
+                    writeln!(out, "
+    LicensedCrate {{
+        name: {:?},
+        license: License::MissingContent {{
+            name: {:?},
+        }},
+    }},", package.name(), license.to_string())?;
+                }
             }
         }
     }
