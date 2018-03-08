@@ -112,7 +112,7 @@ fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
-        writeln!(out, " * {} under the terms of {}:", package.name(), package.license())?;
+        writeln!(out, " * {} {} under the terms of {}:", package.name(), package.version(), package.license())?;
         writeln!(out, "")?;
         inline_package(context, package, out)?;
         writeln!(out, "")?;
@@ -124,7 +124,7 @@ fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
-        writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;
+        writeln!(out, " * {} {} under the terms of {}", package.name(), package.version(), package.license())?;
     }
     Ok(())
 }
@@ -147,6 +147,7 @@ pub struct Licenses {
 
 pub struct LicensedCrate {
     pub name: &'static str,
+    pub version: &'static str,
     pub licenses: Licenses,
 }
 
@@ -164,7 +165,7 @@ fn split<P: AsRef<Path>>(context: &mut Context, out: &mut io::Write, dir: P) -> 
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
-        writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;
+        writeln!(out, " * {} {} under the terms of {}", package.name(), package.version(), package.license())?;
         split_package(context, package, dir.as_ref())?;
     }
     Ok(())
@@ -231,6 +232,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
         writeln!(out, "
     LicensedCrate {{
         name: {:?},
+        version: {:?},
         licenses: Licenses {{
             name: {:?},
             licenses: &[
@@ -240,7 +242,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
                 }},
             ],
         }},
-    }},", package.name(), license.to_string(), license.to_string(), text.text)?;
+    }},", package.name(), package.version().to_string(), license.to_string(), license.to_string(), text.text)?;
     } else {
         let license_name = license.to_string();
         match license {
@@ -251,9 +253,10 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
                 writeln!(out, "
     LicensedCrate {{
         name: {:?},
+        version: {:?},
         licenses: Licenses {{
             name: {:?},
-            licenses: &[", package.name(), license_name)?;
+            licenses: &[", package.name(), package.version().to_string(), license_name)?;
                 for license in licenses {
                     let texts = find_license_text(package, &license)?;
                     let text = (choose(context, package, &license, texts)?).map(|t| format!("Some({:?})", t.text)).unwrap_or_else(|| "None".to_owned());
@@ -274,6 +277,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
                 writeln!(out, "
     LicensedCrate {{
         name: {:?},
+        version: {:?},
         licenses: Licenses {{
             name: {:?},
             licenses: &[
@@ -283,7 +287,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
                 }},
             ],
         }},
-    }},", package.name(), license.to_string(), license.to_string(), text)?;
+    }},", package.name(), package.version().to_string(), license.to_string(), license.to_string(), text)?;
             }
         }
     }
