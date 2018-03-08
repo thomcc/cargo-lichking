@@ -39,6 +39,13 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
                 inline(&mut context, &mut io::stdout())?;
             }
         }
+        Bundle::NameOnly { file } => {
+            if let Some(file) = file {
+                name_only(&mut context, &mut File::create(file)?)?;
+            } else {
+                name_only(&mut context, &mut io::stdout())?;
+            }
+        }
     }
 
     if context.missing_license {
@@ -80,9 +87,19 @@ fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     Ok(())
 }
 
+fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
+    writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
+    writeln!(out, "")?;
+    for package in context.packages {
+        let license = package.license();
+        writeln!(out, " * {} under the terms of {}", package.name(), license)?;
+    }
+    Ok(())
+}
+
 fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write) -> CargoResult<()> {
     let license = package.license();
-    writeln!(out, " * {} under {}:", package.name(), license)?;
+    writeln!(out, " * {} under the terms of {}:", package.name(), license)?;
     writeln!(out, "")?;
     if let Some(text) = find_generic_license_text(package, &license)? {
         match text.confidence {
