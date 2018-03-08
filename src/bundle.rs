@@ -240,7 +240,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
             licenses: &[", package.name(), license_name)?;
                 for license in licenses {
                     let texts = find_license_text(package, &license)?;
-                    let text = (choose(context, package, &license, texts)?).map(|t| format!("Some({:?})", t.text)).unwrap_or("None".to_owned());
+                    let text = (choose(context, package, &license, texts)?).map(|t| format!("Some({:?})", t.text)).unwrap_or_else(|| "None".to_owned());
                     writeln!(out, "
                 License {{
                     name: {:?},
@@ -254,7 +254,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
             }
             license => {
                 let texts = find_license_text(package, &license)?;
-                let text = (choose(context, package, &license, texts)?).map(|t| format!("Some({:?})", t.text)).unwrap_or("None".to_owned());
+                let text = (choose(context, package, &license, texts)?).map(|t| format!("Some({:?})", t.text)).unwrap_or_else(|| "None".to_owned());
                 writeln!(out, "
     LicensedCrate {{
         name: {:?},
