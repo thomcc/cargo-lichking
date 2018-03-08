@@ -1,5 +1,6 @@
-use std::io;
-use std::fs::File;
+use std::io::{self, Write};
+use std::fs::{self, File};
+use std::path::Path;
 
 use cargo::{Config, CargoResult};
 use cargo::core::{Package, Shell};
@@ -46,6 +47,13 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
                 name_only(&mut context, &mut io::stdout())?;
             }
         }
+        Bundle::Split { file, dir } => {
+            if let Some(file) = file {
+                split(&mut context, &mut File::create(file)?, dir)?;
+            } else {
+                split(&mut context, &mut io::stdout(), dir)?;
+            }
+        }
     }
 
     if context.missing_license {
@@ -81,6 +89,8 @@ fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
     writeln!(out, "")?;
     for package in context.packages {
+        writeln!(out, " * {} under the terms of {}:", package.name(), package.license())?;
+        writeln!(out, "")?;
         inline_package(context, package, out)?;
         writeln!(out, "")?;
     }
@@ -91,16 +101,24 @@ fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
     writeln!(out, "")?;
     for package in context.packages {
-        let license = package.license();
-        writeln!(out, " * {} under the terms of {}", package.name(), license)?;
+        writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;
+    }
+    Ok(())
+}
+
+fn split<P: AsRef<Path>>(context: &mut Context, out: &mut io::Write, dir: P) -> CargoResult<()> {
+    fs::create_dir_all(dir.as_ref())?;
+    writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
+    writeln!(out, "")?;
+    for package in context.packages {
+        writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;
+        split_package(context, package, dir.as_ref())?;
     }
     Ok(())
 }
 
 fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write) -> CargoResult<()> {
     let license = package.license();
-    writeln!(out, " * {} under the terms of {}:", package.name(), license)?;
-    writeln!(out, "")?;
     if let Some(text) = find_generic_license_text(package, &license)? {
         match text.confidence {
             Confidence::Confident => (),
@@ -140,6 +158,54 @@ fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write)
         }
     }
     writeln!(out, "")?;
+    Ok(())
+}
+
+fn split_package(context: &mut Context, package: &Package, dir: &Path) -> CargoResult<()> {
+    let license = package.license();
+    let mut file = File::create(dir.join(package.name()))?;
+    if let Some(text) = find_generic_license_text(package, &license)? {
+        match text.confidence {
+            Confidence::Confident => (),
+            Confidence::SemiConfident => {
+                context.shell.warn(format_args!("{} has only a low-confidence candidate for license {}:", package.name(), license))?;
+                context.shell.warn(format_args!("    {}", text.path.display()))?;
+            }
+            Confidence::Unsure => {
+                context.shell.error(format_args!("{} has only a very low-confidence candidate for license {}:", package.name(), license))?;
+                context.shell.error(format_args!("    {}", text.path.display()))?;
+            }
+        }
+        file.write_all(text.text.as_bytes())?;
+    } else {
+        match license {
+            License::Unspecified => {
+                context.shell.error(format_args!("{} does not specify a license", package.name()))?;
+            }
+            License::Multiple(licenses) => {
+                let mut first = true;
+                for license in licenses {
+                    if first {
+                        first = false;
+                    } else {
+                        writeln!(file, "")?;
+                        writeln!(file, "===============")?;
+                        writeln!(file, "")?;
+                    }
+                    let texts = find_license_text(package, &license)?;
+                    if let Some(text) = choose(context, package, &license, texts)? {
+                        file.write_all(text.text.as_bytes())?;
+                    }
+                }
+            }
+            license => {
+                let texts = find_license_text(package, &license)?;
+                if let Some(text) = choose(context, package, &license, texts)? {
+                    file.write_all(text.text.as_bytes())?;
+                }
+            }
+        }
+    }
     Ok(())
 }
 

@@ -24,6 +24,10 @@ pub enum Bundle {
     NameOnly {
         file: Option<String>,
     },
+    Split {
+        file: Option<String>,
+        dir: String,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -57,8 +61,9 @@ impl Bundle {
             Arg::with_name("variant")
                 .long("variant")
                 .takes_value(true)
-                .possible_values(&["inline", "name-only"])
+                .possible_values(&["inline", "name-only", "split"])
                 .default_value("inline")
+                .requires_if("split", "dir")
                 .help("")
                 .long_help("\
 What sort of bundle to produce:
@@ -71,12 +76,22 @@ What sort of bundle to produce:
         Output a single file to location specified by --file containing just
         the name of the license used by each dependency
 
+    split:
+        Output a file to location specified by --file containing the name of
+        the license used by each dependency, along with a folder at the location
+        specified by --dir containing the text of each dependency's license in a
+        separate file inside
+
 \
                 "),
             Arg::with_name("file")
                 .long("file")
                 .takes_value(true).value_name("FILE")
                 .help("The file to output to (standard out if not specified)"),
+            Arg::with_name("dir")
+                .long("dir")
+                .takes_value(true).value_name("DIR")
+                .help("The directory to output to"),
         ]
     }
 
@@ -87,6 +102,10 @@ What sort of bundle to produce:
             },
             "name-only" => Bundle::NameOnly {
                 file: matches.value_of("file").map(ToOwned::to_owned),
+            },
+            "split" => Bundle::Split {
+                file: matches.value_of("file").map(ToOwned::to_owned),
+                dir: matches.value_of("dir").expect("required").to_owned(),
             },
             variant => panic!("Unexpected variant value {}", variant),
         }
