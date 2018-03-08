@@ -44,6 +44,7 @@ pub enum Cmd {
     },
     Bundle {
         variant: Bundle,
+        package: SelectedPackage,
     },
     ThirdParty {
         full: bool,
@@ -102,6 +103,14 @@ What sort of bundle to produce:
                 .long("dir")
                 .takes_value(true).value_name("DIR")
                 .help("The directory to output to"),
+            Arg::with_name("all")
+                .long("all")
+                .help("Bundle dependencies of all packages in workspace"),
+            Arg::with_name("package")
+                .short("p").long("package")
+                .takes_value(true).value_name("SPEC")
+                .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
+                .help("Package to bundle dependencies of"),
         ]
     }
 
@@ -242,7 +251,17 @@ manifest. \
 
             SubCommand::with_name("bundle")
                 .about("Bundle all dependencies licenses ready for distribution")
-                .args(&Bundle::args()),
+                .args(&Bundle::args())
+                .after_help("\
+If the --package argument is given, then SPEC is a package id specification \
+which indicates of which package dependencies should be bundled. If it is not \
+given, then the current package's dependencies are bundled. For more \
+information on SPEC and its format, see the `cargo help pkgid` command.
+
+Dependencies of all packages in the workspace are bundled if the `--all` flag \
+is supplied. The `--all` flag may be supplied in the presence of a virtual \
+manifest. \
+                "),
 
             SubCommand::with_name("thirdparty")
                 .about("List dependencies of cargo-lichking")
@@ -295,6 +314,14 @@ manifest. \
                 ("bundle", Some(matches)) => {
                     Cmd::Bundle {
                         variant: Bundle::from_matches(matches),
+                        package: if matches.is_present("all") {
+                            SelectedPackage::All
+                        } else {
+                            matches.value_of("package")
+                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
+                                .map(SelectedPackage::Specific)
+                                .unwrap_or(SelectedPackage::Default)
+                        }
                     }
                 }
                 ("thirdparty", Some(matches)) => {

@@ -12,20 +12,36 @@ use discovery::{
     Confidence, LicenseText, find_generic_license_text, find_license_text
 };
 
-struct Context<'a, 'b> {
-    root: Package,
+struct Context<'a> {
+    roots_name: String,
     packages: &'a [Package],
-    shell: &'b mut Shell,
+    shell: &'a mut Shell,
 
     missing_license: bool,
     low_quality_license: bool,
 }
 
-pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: Bundle) -> CargoResult<()> {
+pub fn run(roots: &[Package], mut packages: Vec<Package>, config: &Config, variant: Bundle) -> CargoResult<()> {
     packages.sort_by_key(|package| package.name().to_owned());
 
+    let roots_name = {
+        if roots.len() == 1 {
+            format!("{} package", roots[0].name())
+        } else {
+            let mut roots_name = String::new();
+            roots_name += roots[0].name();
+            for i in 1..(roots.len() - 1) {
+                roots_name += ", ";
+                roots_name += roots[i].name();
+            }
+            roots_name += " and ";
+            roots_name += roots.last().unwrap().name();
+            roots_name += " packages";
+            roots_name
+        }
+    };
     let mut context = Context {
-        root: root,
+        roots_name,
         packages: &packages,
         shell: &mut config.shell(),
         missing_license: false,
@@ -93,7 +109,7 @@ pub fn run(root: Package, mut packages: Vec<Package>, config: &Config, variant: 
 }
 
 fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
-    writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
+    writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
         writeln!(out, " * {} under the terms of {}:", package.name(), package.license())?;
@@ -105,7 +121,7 @@ fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
 }
 
 fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
-    writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
+    writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
         writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;
@@ -145,7 +161,7 @@ pub const CRATES: &'static [LicensedCrate] = &[
 
 fn split<P: AsRef<Path>>(context: &mut Context, out: &mut io::Write, dir: P) -> CargoResult<()> {
     fs::create_dir_all(dir.as_ref())?;
-    writeln!(out, "The {} package uses some third party libraries under their own license terms:", context.root.name())?;
+    writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
     writeln!(out, "")?;
     for package in context.packages {
         writeln!(out, " * {} under the terms of {}", package.name(), package.license())?;

@@ -17,9 +17,9 @@ mod thirdparty;
 
 use std::process;
 
-use cargo::{ Config, CliResult };
+use cargo::{Config, CliResult};
 
-use options::{ Options, Cmd, SelectedPackage };
+use options::{Options, Cmd};
 
 fn main() {
     let matches = Options::app(false).get_matches();
@@ -57,17 +57,19 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
             }
             error?;
         }
+
         Cmd::List { by, package } => {
             let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
             let packages = load::resolve_packages(manifest_path, config, &roots)?;
             list::run(packages, by)?;
         }
-        Cmd::Bundle { variant } => {
-            // TODO: Package selection support
-            let roots = load::resolve_roots(manifest_path.clone(), config, SelectedPackage::Default)?;
+
+        Cmd::Bundle { variant, package } => {
+            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
             let packages = load::resolve_packages(manifest_path, config, &roots)?;
-            bundle::run(roots[0].clone(), packages, config, variant)?;
+            bundle::run(&roots, packages, config, variant)?;
         }
+
         Cmd::ThirdParty { full } => {
             println!("cargo-lichking uses some third party libraries under their own license terms:");
             println!();
