@@ -30,9 +30,9 @@ pub fn run(roots: &[Package], mut packages: Vec<Package>, config: &Config, varia
         } else {
             let mut roots_name = String::new();
             roots_name += roots[0].name();
-            for i in 1..(roots.len() - 1) {
+            for root in roots.iter().take(roots.len() - 1).skip(1) {
                 roots_name += ", ";
-                roots_name += roots[i].name();
+                roots_name += root.name();
             }
             roots_name += " and ";
             roots_name += roots.last().unwrap().name();

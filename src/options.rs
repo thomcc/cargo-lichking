@@ -1,3 +1,5 @@
+#![allow(large_enum_variant)]
+
 use std::str::FromStr;
 
 use cargo::core::PackageIdSpec;
