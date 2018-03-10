@@ -104,6 +104,7 @@ impl SelectedPackage {
             For more information on SPEC and its format, see the `cargo help \
             pkgid` command.
 
+\
             All packages in the workspace are used if the `--all` flag is supplied. \
             The `--all` flag may be supplied in the presence of a virtual manifest. \
         "
