@@ -62,8 +62,67 @@ pub struct Options {
     pub cmd: Cmd,
 }
 
+impl By {
+    fn args() -> Vec<Arg<'static, 'static>> {
+        vec![
+            Arg::with_name("by")
+                .long("by")
+                .takes_value(true)
+                .possible_values(&["license", "crate"])
+                .default_value("license")
+                .help("Whether to list crates per license or licenses per crate"),
+        ]
+    }
+
+    fn from_matches(matches: &ArgMatches) -> By {
+        matches.value_of("by")
+            .expect("defaulted")
+            .parse()
+            .expect("constrained")
+    }
+}
+
+impl SelectedPackage {
+    fn args() -> Vec<Arg<'static, 'static>> {
+        vec![
+            Arg::with_name("all")
+                .long("all")
+                .help("Apply to all packages in workspace"),
+            Arg::with_name("package")
+                .short("p").long("package")
+                .takes_value(true).value_name("SPEC")
+                .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
+                .help("Package to apply this command to"),
+        ]
+    }
+
+    fn help() -> &'static str {
+        "\
+            If the --package argument is given, then SPEC is a package id \
+            specification which indicates which package this command should \
+            apply to. If it is not given, then the current package is used. \
+            For more information on SPEC and its format, see the `cargo help \
+            pkgid` command.
+
+            All packages in the workspace are used if the `--all` flag is supplied. \
+            The `--all` flag may be supplied in the presence of a virtual manifest. \
+        "
+    }
+
+    fn from_matches(matches: &ArgMatches) -> SelectedPackage {
+        if matches.is_present("all") {
+            SelectedPackage::All
+        } else {
+            matches.value_of("package")
+                .map(|s| PackageIdSpec::parse(s).expect("validated"))
+                .map(SelectedPackage::Specific)
+                .unwrap_or(SelectedPackage::Default)
+        }
+    }
+}
+
 impl Bundle {
-    pub fn args() -> Vec<Arg<'static, 'static>> {
+    fn args() -> Vec<Arg<'static, 'static>> {
         vec![
             Arg::with_name("variant")
                 .long("variant")
@@ -103,18 +162,10 @@ What sort of bundle to produce:
                 .long("dir")
                 .takes_value(true).value_name("DIR")
                 .help("The directory to output to"),
-            Arg::with_name("all")
-                .long("all")
-                .help("Bundle dependencies of all packages in workspace"),
-            Arg::with_name("package")
-                .short("p").long("package")
-                .takes_value(true).value_name("SPEC")
-                .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
-                .help("Package to bundle dependencies of"),
         ]
     }
 
-    pub fn from_matches(matches: &ArgMatches) -> Bundle {
+    fn from_matches(matches: &ArgMatches) -> Bundle {
         match matches.value_of("variant").expect("defaulted") {
             "inline" => Bundle::Inline {
                 file: matches.value_of("file").map(ToOwned::to_owned),
@@ -200,68 +251,20 @@ impl Options {
         vec![
             SubCommand::with_name("check")
                 .about("Check that all dependencies have a compatible license with a package")
-                .args(&[
-                    Arg::with_name("all")
-                        .long("all")
-                        .help("Check all packages in workspace"),
-                    Arg::with_name("package")
-                        .short("p").long("package")
-                        .takes_value(true).value_name("SPEC")
-                        .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
-                        .help("Package to check"),
-                ])
-                .after_help("\
-If the --package argument is given, then SPEC is a package id specification \
-which indicates which package should be checked. If it is not given, then the \
-current package is checked. For more information on SPEC and its format, see \
-the `cargo help pkgid` command.
-
-All packages in the workspace are checked if the `--all` flag is supplied. \
-The `--all` flag may be supplied in the presence of a virtual manifest. \
-                "),
+                .args(&SelectedPackage::args())
+                .after_help(SelectedPackage::help()),
 
             SubCommand::with_name("list")
                 .about("List licensing of all dependencies")
-                .args(&[
-                    Arg::with_name("by")
-                        .long("by")
-                        .takes_value(true)
-                        .possible_values(&["license", "crate"])
-                        .default_value("license")
-                        .help("Whether to list crates per license or licenses per crate"),
-                    Arg::with_name("all")
-                        .long("all")
-                        .help("List dependencies of all packages in workspace"),
-                    Arg::with_name("package")
-                        .short("p").long("package")
-                        .takes_value(true).value_name("SPEC")
-                        .validator(|s| PackageIdSpec::parse(&s).map(|_| ()).map_err(|e| e.to_string()))
-                        .help("Package to list dependencies of"),
-                ])
-                .after_help("\
-If the --package argument is given, then SPEC is a package id specification \
-which indicates of which package dependencies should be listed. If it is not \
-given, then the current package's dependencies are listed. For more \
-information on SPEC and its format, see the `cargo help pkgid` command.
-
-Dependencies of all packages in the workspace are listed if the `--all` flag \
-is supplied. The `--all` flag may be supplied in the presence of a virtual \
-manifest. \
-                "),
+                .args(&By::args())
+                .args(&SelectedPackage::args())
+                .after_help(SelectedPackage::help()),
 
             SubCommand::with_name("bundle")
                 .about("Bundle all dependencies licenses ready for distribution")
                 .args(&Bundle::args())
-                .after_help("\
-If the --package argument is given, then SPEC is a package id specification \
-which indicates of which package dependencies should be bundled. If it is not \
-given, then the current package's dependencies are bundled. For more \
-information on SPEC and its format, see the `cargo help pkgid` command.
-
-Dependencies of all packages in the workspace are bundled if the `--all` flag \
-is supplied. The `--all` flag may be supplied in the presence of a virtual \
-manifest. \
-                "),
+                .args(&SelectedPackage::args())
+                .after_help(SelectedPackage::help()),
 
             SubCommand::with_name("thirdparty")
                 .about("List dependencies of cargo-lichking")
@@ -285,43 +288,19 @@ manifest. \
             cmd: match matches.subcommand() {
                 ("check", Some(matches)) => {
                     Cmd::Check {
-                        package: if matches.is_present("all") {
-                            SelectedPackage::All
-                        } else {
-                            matches.value_of("package")
-                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
-                                .map(SelectedPackage::Specific)
-                                .unwrap_or(SelectedPackage::Default)
-                        }
+                        package: SelectedPackage::from_matches(matches),
                     }
                 }
                 ("list", Some(matches)) => {
                     Cmd::List {
-                        by: matches.value_of("by")
-                            .expect("defaulted")
-                            .parse()
-                            .expect("constrained"),
-                        package: if matches.is_present("all") {
-                            SelectedPackage::All
-                        } else {
-                            matches.value_of("package")
-                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
-                                .map(SelectedPackage::Specific)
-                                .unwrap_or(SelectedPackage::Default)
-                        }
+                        by: By::from_matches(matches),
+                        package: SelectedPackage::from_matches(matches),
                     }
                 }
                 ("bundle", Some(matches)) => {
                     Cmd::Bundle {
                         variant: Bundle::from_matches(matches),
-                        package: if matches.is_present("all") {
-                            SelectedPackage::All
-                        } else {
-                            matches.value_of("package")
-                                .map(|s| PackageIdSpec::parse(s).expect("validated"))
-                                .map(SelectedPackage::Specific)
-                                .unwrap_or(SelectedPackage::Default)
-                        }
+                        package: SelectedPackage::from_matches(matches),
                     }
                 }
                 ("thirdparty", Some(matches)) => {
