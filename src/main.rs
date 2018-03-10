@@ -13,6 +13,7 @@ mod licensed;
 mod list;
 mod load;
 mod options;
+mod thirdparty;
 
 use std::process;
 
@@ -66,6 +67,34 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
             let roots = load::resolve_roots(manifest_path.clone(), config, SelectedPackage::Default)?;
             let packages = load::resolve_packages(manifest_path, config, &roots)?;
             bundle::run(roots[0].clone(), packages, config, variant)?;
+        }
+        Cmd::ThirdParty { full } => {
+            println!("cargo-lichking uses some third party libraries under their own license terms:");
+            println!();
+            for krate in thirdparty::CRATES {
+                print!(" * {} under the terms of {}", krate.name, krate.licenses.name);
+                if full {
+                    println!(":");
+                    let mut first = true;
+                    for license in krate.licenses.licenses {
+                        if first {
+                            first = false;
+                        } else {
+                            println!();
+                            println!("    ===============");
+                        }
+                        println!();
+                        if let Some(text) = license.text {
+                            for line in text.lines() {
+                                println!("    {}", line);
+                            }
+                        } else {
+                            println!("    Missing {} license text", license.name);
+                        }
+                    }
+                }
+                println!();
+            }
         }
     }
 

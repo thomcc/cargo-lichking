@@ -24,6 +24,13 @@ pub enum Bundle {
     NameOnly {
         file: Option<String>,
     },
+    Source {
+        file: Option<String>,
+    },
+    Split {
+        file: Option<String>,
+        dir: String,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -37,6 +44,9 @@ pub enum Cmd {
     },
     Bundle {
         variant: Bundle,
+    },
+    ThirdParty {
+        full: bool,
     },
 }
 
@@ -57,8 +67,9 @@ impl Bundle {
             Arg::with_name("variant")
                 .long("variant")
                 .takes_value(true)
-                .possible_values(&["inline", "name-only"])
+                .possible_values(&["inline", "name-only", "source", "split"])
                 .default_value("inline")
+                .requires_if("split", "dir")
                 .help("")
                 .long_help("\
 What sort of bundle to produce:
@@ -71,12 +82,26 @@ What sort of bundle to produce:
         Output a single file to location specified by --file containing just
         the name of the license used by each dependency
 
+    source:
+        Output a single file to location specified by --file containing Rust
+        source with the name and content of the license used by each dependency
+
+    split:
+        Output a file to location specified by --file containing the name of
+        the license used by each dependency, along with a folder at the location
+        specified by --dir containing the text of each dependency's license in a
+        separate file inside
+
 \
                 "),
             Arg::with_name("file")
                 .long("file")
                 .takes_value(true).value_name("FILE")
                 .help("The file to output to (standard out if not specified)"),
+            Arg::with_name("dir")
+                .long("dir")
+                .takes_value(true).value_name("DIR")
+                .help("The directory to output to"),
         ]
     }
 
@@ -87,6 +112,13 @@ What sort of bundle to produce:
             },
             "name-only" => Bundle::NameOnly {
                 file: matches.value_of("file").map(ToOwned::to_owned),
+            },
+            "source" => Bundle::Source {
+                file: matches.value_of("file").map(ToOwned::to_owned),
+            },
+            "split" => Bundle::Split {
+                file: matches.value_of("file").map(ToOwned::to_owned),
+                dir: matches.value_of("dir").expect("required").to_owned(),
             },
             variant => panic!("Unexpected variant value {}", variant),
         }
@@ -207,9 +239,18 @@ Dependencies of all packages in the workspace are listed if the `--all` flag \
 is supplied. The `--all` flag may be supplied in the presence of a virtual \
 manifest. \
                 "),
+
             SubCommand::with_name("bundle")
                 .about("Bundle all dependencies licenses ready for distribution")
                 .args(&Bundle::args()),
+
+            SubCommand::with_name("thirdparty")
+                .about("List dependencies of cargo-lichking")
+                .args(&[
+                    Arg::with_name("full")
+                        .long("full")
+                        .help("Whether to list license content for each dependency"),
+                ]),
         ]
     }
 
@@ -256,9 +297,14 @@ manifest. \
                         variant: Bundle::from_matches(matches),
                     }
                 }
-                (_, _) => {
+                ("thirdparty", Some(matches)) => {
+                    Cmd::ThirdParty {
+                        full: matches.is_present("full"),
+                    }
+                }
+                (subcommand, _) => {
                     Options::app(true).get_matches();
-                    unreachable!()
+                    panic!("Unexpected subcommand {}", subcommand)
                 }
             },
         }
