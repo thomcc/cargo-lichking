@@ -15,7 +15,9 @@ use cargo::util::errors::CargoResultExt;
 pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) -> CargoResult<(Platform, Vec<Cfg>)> {
     println!("target: {:?}", target);
     let host_target = config.rustc(Some(workspace))?.host.clone();
+    println!("host_target: {:?}", host_target);
     let cfg_target = config.get_string("build.target")?.map(|s| s.val);
+    println!("cfg_target: {:?}", cfg_target);
     let triple = target.or(cfg_target).unwrap_or(host_target);
 
     println!("triple: {:?}", triple);
@@ -24,6 +26,12 @@ pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) ->
     let key = format!("target.{}", triple);
     if let Some(table) = config.get_table(&key)? {
         for (lib_name, value) in table.val {
+            match lib_name.as_str() {
+                "ar" | "linker" | "runner" | "rustflags" => {
+                    continue
+                },
+                _ => {}
+            }
             for (k, value) in value.table(&lib_name)?.0 {
                 match &k[..] {
                     "rustc-cfg" => {
@@ -93,6 +101,7 @@ pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) ->
         .process()
         .arg("-")
         .arg("--crate-name").arg("___")
+        .arg("--target").arg(&triple)
         .arg("--print=cfg")
         .args(&rustflags)
         .env_remove("RUST_LOG")
