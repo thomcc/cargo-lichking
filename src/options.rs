@@ -147,12 +147,6 @@ impl SelectedTarget {
         ]
     }
 
-    fn help() -> &'static str {
-        "\
-            TODO
-        "
-    }
-
     fn from_matches(matches: &ArgMatches) -> SelectedTarget {
         if matches.is_present("all-targets") {
             SelectedTarget::All
@@ -294,8 +288,7 @@ impl Options {
                 .about("Check that all dependencies have a compatible license with a package")
                 .args(&SelectedPackage::args())
                 .args(&SelectedTarget::args())
-                .after_help(SelectedPackage::help())
-                .after_help(SelectedTarget::help()),
+                .after_help(SelectedPackage::help()),
 
 
             SubCommand::with_name("list")
@@ -303,16 +296,14 @@ impl Options {
                 .args(&By::args())
                 .args(&SelectedPackage::args())
                 .args(&SelectedTarget::args())
-                .after_help(SelectedPackage::help())
-                .after_help(SelectedTarget::help()),
+                .after_help(SelectedPackage::help()),
 
             SubCommand::with_name("bundle")
                 .about("Bundle all dependencies licenses ready for distribution")
                 .args(&Bundle::args())
                 .args(&SelectedPackage::args())
                 .args(&SelectedTarget::args())
-                .after_help(SelectedPackage::help())
-                .after_help(SelectedTarget::help()),
+                .after_help(SelectedPackage::help()),
 
             SubCommand::with_name("thirdparty")
                 .about("List dependencies of cargo-lichking")
