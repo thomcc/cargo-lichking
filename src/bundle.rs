@@ -2,6 +2,7 @@ use std::io::{self, Write};
 use std::fs::{self, File};
 use std::path::Path;
 
+use impl_sum::impl_sum;
 use cargo::{Config, CargoResult};
 use cargo::core::{Package, Shell};
 
@@ -48,34 +49,27 @@ pub fn run(roots: &[Package], mut packages: Vec<Package>, config: &Config, varia
         low_quality_license: false,
     };
 
+    #[impl_sum]
+    fn maybe_file(path: Option<impl AsRef<Path>>) -> io::Result<impl Write> {
+        Ok(if let Some(path) = path {
+            impl_sum!(File::create(path)?)
+        } else {
+            impl_sum!(io::stdout())
+        })
+    }
+
     match variant {
         Bundle::Inline { file } => {
-            if let Some(file) = file {
-                inline(&mut context, &mut File::create(file)?)?;
-            } else {
-                inline(&mut context, &mut io::stdout())?;
-            }
+            inline(&mut context, &mut maybe_file(file)?)?;
         }
         Bundle::NameOnly { file } => {
-            if let Some(file) = file {
-                name_only(&mut context, &mut File::create(file)?)?;
-            } else {
-                name_only(&mut context, &mut io::stdout())?;
-            }
+            name_only(&mut context, &mut maybe_file(file)?)?;
         }
         Bundle::Source { file } => {
-            if let Some(file) = file {
-                source(&mut context, &mut File::create(file)?)?;
-            } else {
-                source(&mut context, &mut io::stdout())?;
-            }
+            source(&mut context, &mut maybe_file(file)?)?;
         }
         Bundle::Split { file, dir } => {
-            if let Some(file) = file {
-                split(&mut context, &mut File::create(file)?, dir)?;
-            } else {
-                split(&mut context, &mut io::stdout(), dir)?;
-            }
+            split(&mut context, &mut maybe_file(file)?, dir)?;
         }
     }
 

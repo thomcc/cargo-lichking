@@ -1,9 +1,11 @@
+#![feature(proc_macro, use_extern_macros)]
 #![allow(unknown_lints)] // for clippy
 
 #[macro_use] extern crate clap;
 extern crate cargo;
 extern crate regex;
 extern crate void;
+extern crate impl_sum;
 
 mod bundle;
 mod check;
