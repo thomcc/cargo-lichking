@@ -110,19 +110,19 @@ pub fn run(roots: &[Package], mut packages: Vec<Package>, config: &Config, varia
 
 fn inline(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     for package in context.packages {
         writeln!(out, " * {} {} under the terms of {}:", package.name(), package.version(), package.license())?;
-        writeln!(out, "")?;
+        writeln!(out)?;
         inline_package(context, package, out)?;
-        writeln!(out, "")?;
+        writeln!(out)?;
     }
     Ok(())
 }
 
 fn name_only(context: &mut Context, out: &mut io::Write) -> CargoResult<()> {
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     for package in context.packages {
         writeln!(out, " * {} {} under the terms of {}", package.name(), package.version(), package.license())?;
     }
@@ -163,7 +163,7 @@ pub const CRATES: &'static [LicensedCrate] = &[
 fn split<P: AsRef<Path>>(context: &mut Context, out: &mut io::Write, dir: P) -> CargoResult<()> {
     fs::create_dir_all(dir.as_ref())?;
     writeln!(out, "The {} uses some third party libraries under their own license terms:", context.roots_name)?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     for package in context.packages {
         writeln!(out, " * {} {} under the terms of {}", package.name(), package.version(), package.license())?;
         split_package(context, package, dir.as_ref())?;
@@ -199,9 +199,9 @@ fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write)
                     if first {
                         first = false;
                     } else {
-                        writeln!(out, "")?;
+                        writeln!(out)?;
                         writeln!(out, "    ===============")?;
-                        writeln!(out, "")?;
+                        writeln!(out)?;
                     }
                     inline_license(context, package, &license, out)?;
                 }
@@ -211,7 +211,7 @@ fn inline_package(context: &mut Context, package: &Package, out: &mut io::Write)
             }
         }
     }
-    writeln!(out, "")?;
+    writeln!(out)?;
     Ok(())
 }
 
@@ -291,7 +291,7 @@ fn source_package(context: &mut Context, package: &Package, out: &mut io::Write)
             }
         }
     }
-    writeln!(out, "")?;
+    writeln!(out)?;
     Ok(())
 }
 
@@ -322,9 +322,9 @@ fn split_package(context: &mut Context, package: &Package, dir: &Path) -> CargoR
                     if first {
                         first = false;
                     } else {
-                        writeln!(file, "")?;
+                        writeln!(file)?;
                         writeln!(file, "===============")?;
-                        writeln!(file, "")?;
+                        writeln!(file)?;
                     }
                     let texts = find_license_text(package, &license)?;
                     if let Some(text) = choose(context, package, &license, texts)? {
