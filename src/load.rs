@@ -48,7 +48,7 @@ pub fn resolve_packages<'a, I: IntoIterator<Item=&'a Package>>(
                 for dep_id in deps {
                     let dep = package.dependencies().iter()
                         .find(|d| d.matches_id(dep_id))
-                        .expect(&format!("Looking up a packages dependency in the package failed, failed to find '{}' in '{}'", dep_id, id));
+                        .unwrap_or_else(|| panic!("Looking up a packages dependency in the package failed, failed to find '{}' in '{}'", dep_id, id));
                     if let Kind::Normal = dep.kind() {
                         let dep_id = resolve.replacement(dep_id).unwrap_or(dep_id);
                         to_check.push(dep_id);
