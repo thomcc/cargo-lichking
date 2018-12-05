@@ -9,10 +9,9 @@ use cargo::{ Config, CargoResult };
 use options::SelectedPackage;
 
 pub fn resolve_roots(
-        manifest_path: Option<String>,
         config: &Config,
         package: SelectedPackage) -> CargoResult<Vec<Package>> {
-    let root_manifest = find_root_manifest_for_wd(manifest_path, config.cwd())?;
+    let root_manifest = find_root_manifest_for_wd(config.cwd())?;
     let workspace = Workspace::new(&root_manifest, config)?;
 
     Ok(match package {
@@ -31,10 +30,9 @@ pub fn resolve_roots(
 }
 
 pub fn resolve_packages<'a, I: IntoIterator<Item=&'a Package>>(
-        manifest_path: Option<String>,
         config: &Config,
         roots: I) -> CargoResult<Vec<Package>> {
-    let root_manifest = find_root_manifest_for_wd(manifest_path, config.cwd())?;
+    let root_manifest = find_root_manifest_for_wd(config.cwd())?;
     let workspace = Workspace::new(&root_manifest, config)?;
 
     let (packages, resolve) = ops::resolve_ws(&workspace)?;

@@ -2,6 +2,7 @@
 
 #[macro_use] extern crate clap;
 extern crate cargo;
+#[macro_use] extern crate failure;
 extern crate regex;
 extern crate void;
 
@@ -15,8 +16,6 @@ mod load;
 mod options;
 mod thirdparty;
 
-use std::process;
-
 use cargo::{Config, CliResult};
 
 use options::{Options, Cmd};
@@ -27,8 +26,7 @@ fn main() {
     let mut config = Config::default().expect("No idea why this would fail");
     let result = real_main(options, &mut config);
     if let Err(err) = result {
-        config.shell().error(err).expect("Can't do much");
-        process::exit(1);
+        cargo::exit_with_error(err, &mut *config.shell());
     }
 }
 
@@ -39,18 +37,17 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
         &options.color,
         options.frozen,
         options.locked,
+        &None,
         &[])?;
 
     config.shell().warn("IANAL: This is not legal advice and is not guaranteed to be correct.")?;
 
-    let manifest_path = options.manifest_path;
-
     match options.cmd {
         Cmd::Check { package } => {
             let mut error = Ok(());
-            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
+            let roots = load::resolve_roots(config, package)?;
             for root in roots {
-                let packages = load::resolve_packages(manifest_path.clone(), config, vec![&root])?;
+                let packages = load::resolve_packages(config, vec![&root])?;
                 if let Err(err) = check::run(&root, packages, config) {
                     error = Err(err);
                 }
@@ -59,14 +56,14 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
         }
 
         Cmd::List { by, package } => {
-            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
-            let packages = load::resolve_packages(manifest_path, config, &roots)?;
+            let roots = load::resolve_roots(config, package)?;
+            let packages = load::resolve_packages(config, &roots)?;
             list::run(packages, by)?;
         }
 
         Cmd::Bundle { variant, package } => {
-            let roots = load::resolve_roots(manifest_path.clone(), config, package)?;
-            let packages = load::resolve_packages(manifest_path, config, &roots)?;
+            let roots = load::resolve_roots(config, package)?;
+            let packages = load::resolve_packages(config, &roots)?;
             bundle::run(&roots, packages, config, variant)?;
         }
 
