@@ -1,40 +1,60 @@
 language: rust
-sudo: false
-cache: cargo
+
+stages:
+- name: test
+- name: deploy
+  if: tag IS present
+
 rust:
-  - 1.20.0
+  - 1.30.0
   - stable
   - beta
-  - nightly-2017-11-08
-
-env:
-  global:
-    - CLIPPY_VERSION=0.0.169
-    - secure: "I1kLSc+9CDrHF8c3vz+Vz/R5HG5IZp07Vd9oV/rFdLqv/f3aC0Ugw63hzfOk9TZ55uRWa3AdzvYW3fEV44bSd6FTKjNcCKGa5/3kYNKkfVJbjtFCdLsAXJIXiqMzml+WmoFD4gNVrH1zETIQ9SQTmBN5FIjhzVc/Cs6cw4o/x+aglMADYLKhgDc1Dicl3E0w15kCd4+xuFFVbfB/xlD2pWvncU3FB/hrrPUARQ/QpHBk9QP8meaFx+URmjjT7qBTPQkhGRdYyGltDlKVxgHXGvw4F4nCbgD2aMgAYHn+ePr+L1vuNgImhL1m5JdPIF0dgF+55IJl0j6jN3jhzkjqSHBguG8kY0SZeEFqxfKlbwH/5PnKmOxiaR+GRQot7qhn5Ln2yfK/VSaJ8wcUgCR9raiD+qXFqs8RVmccXx7CHh/K/YcFYeEYlMMZWt7jGDDaorjQ5376exBJh18tNWWC/WTo9Lm5efgUXk9KCEVGcqrhQhHcruAbngGHfKsB4tD/+MqkbuLdZ/GqYQUuHrZ6H9CDJR641IyKTTymaFVNXBIRsvNBhUQV6CxKRQzwrVYNGdGnpgE8sTcizodKhTvFXhbRKFetXaK2hEwRue7U7qJ0xfB19z52X8QojNvwyqkrTyQXe488tGBrt89EaJ/RUq1W8QSkQwv4Uqh7jwuJw20="
-
-before_script:
-  - case "$TRAVIS_RUST_VERSION" in nightly*)
-      cargo install clippy --vers $CLIPPY_VERSION --force;
-    esac
+  - nightly
 
 script:
-  - cargo test
-  - case "$TRAVIS_RUST_VERSION" in nightly*)
-      cargo clippy -- -D warnings;
-    esac
-# - cargo run -- lichking check
+- cargo test --all
+- cargo test --all --release
 
-before_deploy:
-  - cargo package
+matrix:
+  allow_failures:
+  - rust: nightly
+  include:
+  - name: cargo test
+    os: osx
 
-deploy:
-  provider: script
-  script: cargo publish --token "$CRATES_IO_TOKEN"
-  skip_cleanup: true
-  on:
-    tags: true
-    all_branches: true
-    condition: "$TRAVIS_RUST_VERSION = stable"
+  - name: cargo test
+    os: windows
+
+  - name: cargo test -Z minimal-versions
+    rust: nightly
+    script:
+    - cargo update -Z minimal-versions
+    - cargo test --all
+
+  # - name: cargo fmt
+  #   install:
+  #   - rustup component add rustfmt-preview
+  #   script:
+  #   - cargo fmt --all -- --check
+
+  - name: cargo clippy
+    install:
+    - rustup component add clippy-preview
+    script:
+    - cargo clippy --all --all-targets -- -D warnings
+
+  - stage: deploy
+    rust: stable
+    script:
+    - grep 'version = "'"$TRAVIS_TAG"'"' Cargo.toml || echo 'Tag does not match version in Cargo.toml'
+    - gpg --import .authorized_keys
+    - git tag --verify "$TRAVIS_TAG"
+    deploy:
+      provider: cargo
+      token:
+        secure: "RpLcy2WZZuLeXFcqRo7UTPMYu2/qm4MRCoodaAxkMwk6ziuY22C2EVkmUe7r8OwemeIGwVTV+1NCJl7KSBTaN73L3PzN0BwcOo1slU7x9c80xSKbIdQxZUvoD/hrMwyaJ+ADOx504FUdXum5GNTVg47jssnnnC9gTvgXX0Ri2XpMGIUWf7/zIWiVD6H/0FTjb5XKqnjTaMA/A8jt2IqxAw6H/voBgfFFbbUgrH8PIEr8wAENlZZG+bVv7axpCvaCF8JgrL9blaAaEUaXNVUL8i07uiyFSZOl1FRB/V1QdS8jz46IG7lujzyzVRDr6Qco5p94GKpPLaSbI5tUypnB+NmibHf1zA/LUWT+FmfAT4lHCB2+taobKWvSwEzafoELMUYTIOYVr1KFjVfvKcm1MvTMCcsn2WwNTG5PhVleEGCxnawWYA9Ie+QNFgeRsfg963nhjKUaQTr1LCaPQmOKvzASY95SwyZGR6R77KZcNrmwtNgE0iLzzqwdNmIc/i/2/9AwNOKRLPNkgRHYp3vtxit2doiaw8M3EbRb18FRKjNqh8joY/pCE5hClV9ZRE/mV7Tps+yEsTxw4B8jSqkiVzBl4GmGR+zxyzq/k1aidrsLroMRtXT8BBY36ZLryusWRx0T650QBYEc9U9erU+drWmZb9qylz++x8zrJyqArT4="
+      on:
+        all_branches: true
 
 addons:
   apt:
