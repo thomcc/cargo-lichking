@@ -215,7 +215,7 @@ pub const CRATES: &'static [LicensedCrate] = &[
 
     LicensedCrate {
         name: "cargo-lichking",
-        version: "0.7.0",
+        version: "0.7.1",
         licenses: Licenses {
             name: "MIT / Apache-2.0",
             licenses: &[
