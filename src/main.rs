@@ -71,7 +71,7 @@ fn real_main(options: Options, config: &mut Config) -> CliResult {
             println!("cargo-lichking uses some third party libraries under their own license terms:");
             println!();
             for krate in thirdparty::CRATES {
-                print!(" * {} under the terms of {}", krate.name, krate.licenses.name);
+                print!(" * {} v{} under the terms of {}", krate.name, krate.version, krate.licenses.name);
                 if full {
                     println!(":");
                     let mut first = true;
