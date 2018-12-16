@@ -24,7 +24,7 @@ pub fn resolve_roots(
         SelectedPackage::Specific(spec) => {
             let (packages, _) = ops::resolve_ws(&workspace)?;
             let package_id = spec.query(packages.package_ids())?;
-            vec![packages.get(package_id)?.clone()]
+            vec![packages.get_one(package_id)?.clone()]
         }
     })
 }
@@ -40,7 +40,7 @@ pub fn resolve_packages<'a, I: IntoIterator<Item=&'a Package>>(
     let mut result = HashSet::new();
     let mut to_check = roots.into_iter().map(|p| p.package_id()).collect::<Vec<_>>();
     while let Some(id) = to_check.pop() {
-        if let Ok(package) = packages.get(id) {
+        if let Ok(package) = packages.get_one(id) {
             if result.insert(package) {
                 let deps = resolve.deps_not_replaced(id);
                 for dep_id in deps {
