@@ -43,10 +43,21 @@ matrix:
     script:
     - cargo clippy --all --all-targets -- -D warnings
 
+  - name: diff src/thirdparty.rs
+    script:
+    - diff src/thirdparty.rs <(cargo run -- lichking bundle --variant source) || (
+        echo 'Thirdparty license bundle out of date, please update with:';
+        echo '    cargo run -- lichking bundle --variant source --file src/thirdparty.rs';
+        exit 1
+      )
+
   - stage: deploy
     rust: stable
     script:
-    - grep 'version = "'"$TRAVIS_TAG"'"' Cargo.toml || echo 'Tag does not match version in Cargo.toml'
+    - grep 'version = "'"$TRAVIS_TAG"'"' Cargo.toml || (
+        echo 'Tag does not match version in Cargo.toml';
+        exit 1
+      )
     - gpg --import .authorized_keys
     - git tag --verify "$TRAVIS_TAG"
     deploy:

@@ -1,6 +1,6 @@
 [package]
 name = "cargo-lichking"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Wim Looman <wim@nemo157.com>"]
 
 description = "Display info about licensing of dependencies"
@@ -16,5 +16,5 @@ license = "MIT/Apache-2.0"
 cargo = "0.32"
 clap = "2.20"
 failure = "0.1.2"
-regex = "0.2"
+regex = "1.0"
 void = "1.0"
