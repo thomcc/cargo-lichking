@@ -22,7 +22,7 @@ struct Context<'a> {
 }
 
 pub fn run(roots: &[Package], mut packages: Vec<Package>, config: &Config, variant: Bundle) -> CargoResult<()> {
-    packages.sort_by_key(|package| package.name().to_owned());
+    packages.sort_by(|p1, p2| (p1.name(), p1.version()).cmp(&(p2.name(), p2.version())));
 
     let roots_name = {
         if roots.len() == 1 {
