@@ -19,7 +19,7 @@ pub struct LicensedCrate {
     pub licenses: Licenses,
 }
 
-pub const CRATES: &'static [LicensedCrate] = &[
+pub const CRATES: &[LicensedCrate] = &[
 
     LicensedCrate {
         name: "adler32",

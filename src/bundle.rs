@@ -151,7 +151,7 @@ pub struct LicensedCrate {
     pub licenses: Licenses,
 }
 
-pub const CRATES: &'static [LicensedCrate] = &[
+pub const CRATES: &[LicensedCrate] = &[
 ")?;
     for package in context.packages {
         source_package(context, package, out)?;
