@@ -11,6 +11,7 @@ pub enum License {
     Unlicense,
     MIT,
     X11,
+    BSD_2_Clause,
     BSD_3_Clause,
     Apache_2_0,
     LGPL_2_0,
@@ -96,27 +97,28 @@ impl License {
         if let LGPL_2_0 = *other { return None; /* TODO: unknown */ }
 
         compatibility!(*self, *other, {
-            Unspecified         => [Unlicense, MIT, X11, BSD_3_Clause]
+            Unspecified         => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause]
 
             LGPL_2_0     => [LGPL_2_0] // TODO: probably allows more
 
             Unlicense    => [Unlicense, MIT, X11]
             MIT          => [Unlicense, MIT, X11]
             X11          => [Unlicense, MIT, X11]
-            BSD_3_Clause => [Unlicense, MIT, X11, BSD_3_Clause]
-            Apache_2_0   => [Unlicense, MIT, X11, BSD_3_Clause, Apache_2_0]
-            MPL_1_1      => [Unlicense, MIT, X11, BSD_3_Clause, MPL_1_1]
-            MPL_2_0      => [Unlicense, MIT, X11, BSD_3_Clause, Apache_2_0, MPL_2_0]
-            LGPL_2_1Plus => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus]
-            LGPL_2_1     => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1]
-            LGPL_3_0Plus => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus]
-            LGPL_3_0     => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus, LGPL_3_0]
-            GPL_2_0Plus  => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus]
-            GPL_2_0      => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0]
-            GPL_3_0Plus  => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus]
-            GPL_3_0      => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0]
-            AGPL_3_0Plus => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus]
-            AGPL_3_0     => [Unlicense, MIT, X11, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus, AGPL_3_0]
+            BSD_2_Clause => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause]
+            BSD_3_Clause => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause]
+            Apache_2_0   => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, Apache_2_0]
+            MPL_1_1      => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_1_1]
+            MPL_2_0      => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, Apache_2_0, MPL_2_0]
+            LGPL_2_1Plus => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus]
+            LGPL_2_1     => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1]
+            LGPL_3_0Plus => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus]
+            LGPL_3_0     => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_3_0Plus, LGPL_3_0]
+            GPL_2_0Plus  => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus]
+            GPL_2_0      => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_2_0]
+            GPL_3_0Plus  => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus]
+            GPL_3_0      => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0]
+            AGPL_3_0Plus => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus]
+            AGPL_3_0     => [Unlicense, MIT, X11, BSD_2_Clause, BSD_3_Clause, MPL_2_0, Apache_2_0, LGPL_2_1Plus, LGPL_2_1, GPL_2_0Plus, GPL_3_0Plus, GPL_3_0, AGPL_3_0Plus, AGPL_3_0]
 
             // TODO: These are `unreachable!()`, can't figure out a nice way to allow this in the macro...
             Custom(_)    => [MIT]
@@ -146,6 +148,7 @@ impl FromStr for License {
             "Unlicense"                       => License::Unlicense,
             "MIT"                             => License::MIT,
             "X11"                             => License::X11,
+            "BSD-2-Clause"                    => License::BSD_2_Clause,
             "BSD-3-Clause"                    => License::BSD_3_Clause,
             "Apache-2.0"                      => License::Apache_2_0,
             "LGPL-2.0-only"     | "LGPL-2.0"  => License::LGPL_2_0,
@@ -181,6 +184,7 @@ impl fmt::Display for License {
             License::Unlicense     => write!(w, "Unlicense"),
             License::MIT           => write!(w, "MIT"),
             License::X11           => write!(w, "X11"),
+            License::BSD_2_Clause  => write!(w, "BSD-2-Clause"),
             License::BSD_3_Clause  => write!(w, "BSD-3-Clause"),
             License::Apache_2_0    => write!(w, "Apache-2.0"),
             License::LGPL_2_0      => write!(w, "LGPL-2.0-only"),
