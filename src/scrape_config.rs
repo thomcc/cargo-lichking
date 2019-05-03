@@ -13,14 +13,10 @@ use cargo::util::{Cfg, CfgExpr};
 use cargo::util::errors::CargoResultExt;
 
 pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) -> CargoResult<(Platform, Vec<Cfg>)> {
-    println!("target: {:?}", target);
     let host_target = config.rustc(Some(workspace))?.host.clone();
-    println!("host_target: {:?}", host_target);
     let cfg_target = config.get_string("build.target")?.map(|s| s.val);
-    println!("cfg_target: {:?}", cfg_target);
     let triple = target.or(cfg_target).unwrap_or(host_target);
 
-    println!("triple: {:?}", triple);
     let mut target_cfgs = Vec::new();
 
     let key = format!("target.{}", triple);
@@ -45,7 +41,6 @@ pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) ->
         }
     }
 
-    println!("target_cfgs: {:?}", target_cfgs);
     let rustflags = {
         // First try RUSTFLAGS from the environment
         if let Ok(flags) = env::var("RUSTFLAGS") {
@@ -96,7 +91,6 @@ pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) ->
         }
     };
 
-    println!("rustflags: {:?}", rustflags);
     let output = config.rustc(Some(workspace))?
         .process()
         .arg("-")
@@ -112,9 +106,7 @@ pub fn scrape(config: &Config, workspace: &Workspace, target: Option<String>) ->
 
     // let error = str::from_utf8(&output.stderr).unwrap();
     let output = str::from_utf8(&output.stdout).unwrap();
-    println!("output: {:?}", output);
     let cfg = output.lines().map(Cfg::from_str).collect::<Result<Vec<_>, _>>()?;
 
-    println!("cfg: {:?}", cfg);
     Ok((triple.parse()?, cfg))
 }
